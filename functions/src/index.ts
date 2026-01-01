@@ -148,8 +148,8 @@ export const getDriveToken = onCall(
 
 export const transcribeSong = onCall(
     {
-        timeoutSeconds: 300, // 5 mins max execution
-        memory: "1GiB",      // Enough RAM for audio processing
+        timeoutSeconds: 300,
+        memory: "512MiB",    // Optimized for ~5MB files
         cors: true,          // Allow client calls
     },
     async (request) => {
@@ -157,9 +157,20 @@ export const transcribeSong = onCall(
             throw new HttpsError("unauthenticated", "User must be logged in.");
         }
 
-        const { audioBase64, mimeType, model } = (request.data as any);
+        const { audioBase64, mimeType, model, duration } = (request.data as any);
         if (!audioBase64) {
             throw new HttpsError("invalid-argument", "Missing audio data.");
+        }
+
+        // 5-Minute Duration Limit Check
+        if (duration && duration > 300) {
+            throw new HttpsError("invalid-argument", "Song exceeds 5-minute limit.");
+        }
+
+        // 8MB Limit Check (Base64 length * 0.75 approx)
+        const estimatedSize = audioBase64.length * 0.75;
+        if (estimatedSize > 8 * 1024 * 1024) {
+            throw new HttpsError("invalid-argument", "Payload exceeds 8MB limit.");
         }
 
         const buffer = Buffer.from(audioBase64, "base64");

@@ -205,7 +205,7 @@ export function FullPlayer({
 
       if (!audioBlob) throw new Error("Audio not available.");
 
-      const generated = await LyricServices.generateLyricsAI(audioBlob, model);
+      const generated = await LyricServices.generateLyricsAI(audioBlob, model, duration);
       setLyrics(generated);
 
       if (token) {

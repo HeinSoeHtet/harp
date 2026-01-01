@@ -130,11 +130,19 @@ export const LyricServices = {
    */
   async generateLyricsAI(
     audioBlob: Blob,
-    model: string
+    model: string,
+    duration: number
   ): Promise<LyricLine[]> {
     try {
       console.log(`🚀 Optimizing audio for ${model}...`);
       const processedBlob = await optimizeAudio(audioBlob);
+
+      // 8MB Limit Check
+      const EIGHT_MB = 8 * 1024 * 1024;
+      if (processedBlob.size > EIGHT_MB) {
+        throw new Error(`Optimized audio is too large (${(processedBlob.size / (1024 * 1024)).toFixed(1)}MB). Limit is 8MB.`);
+      }
+
       const base64Audio = await blobToBase64(processedBlob);
 
       console.log(`📡 Sending to Cloud Function with model: ${model}...`);
@@ -144,7 +152,8 @@ export const LyricServices = {
       const result = await transcribeFn({
         audioBase64: base64Audio,
         mimeType: "audio/mp3",
-        model: model
+        model: model,
+        duration: duration
       });
 
       const lyrics = result.data as LyricLine[];

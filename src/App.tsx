@@ -1,15 +1,11 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { onAuthStateChanged, signOut, type User } from "firebase/auth";
-import { auth, functions } from "./firebase";
-import { httpsCallable } from "firebase/functions";
+import { type User } from "firebase/auth";
 import { Loader2, CheckCircle2 } from "lucide-react";
-import { get as getBytes, set as setBytes, del as delBytes } from "idb-keyval";
 
 // Services & Types
 import { LibraryServices, type Song } from "./services/libraryServices";
-import { DriveApiServices } from "./services/driveApiServices";
 
 // Pages & Components
 import { ConnectPage } from "./pages/ConnectPage";
@@ -42,35 +38,11 @@ function useBlobUrl(blob: Blob | undefined | null) {
 
 // Imports updated to include useToast
 import { useToast, ToastProvider } from "./context/ToastContext";
+import { DriveProvider, useDrive } from "./context/DriveContext";
 
 const AppContent = () => {
   const toast = useToast();
-  // robust initialization to prevent flickering
-  const [user, setUser] = useState<User | null>(() => {
-    try {
-      const cached = localStorage.getItem("harp_user_cache");
-      return cached && cached !== "undefined" && cached !== "null" ? JSON.parse(cached) : null;
-    } catch { return null; }
-  });
-
-  const [driveToken, setDriveToken] = useState<string | null>(() => {
-    return localStorage.getItem("harp_drive_token");
-  });
-
-  // Loading checks: strictly check if we *failed* to restore session.
-  // If we restored both user & token, we are NOT loading.
-  const [isAuthLoading, setIsAuthLoading] = useState(() => {
-    const token = localStorage.getItem("harp_drive_token");
-    let u = null;
-    try {
-      const cached = localStorage.getItem("harp_user_cache");
-      if (cached && cached !== "undefined" && cached !== "null") {
-        u = JSON.parse(cached);
-      }
-    } catch { }
-    // If we have both, we are ready. Otherwise, wait for Firebase/Quiet Auth.
-    return !(token && u);
-  });
+  const { user, driveToken, isAuthLoading, login, logout, refreshSession } = useDrive();
 
   const [songs, setSongs] = useState<Song[]>([]);
   const [playbackQueue, setPlaybackQueue] = useState<Song[]>([]);
@@ -123,75 +95,20 @@ const AppContent = () => {
   };
 
   useEffect(() => {
-    const handleAuthChange = async (currentUser: User | null) => {
-      if (currentUser) {
-        setUser(currentUser);
-        localStorage.setItem("harp_user_cache", JSON.stringify(currentUser));
-
-        let activeToken = localStorage.getItem("harp_drive_token");
-
-        // 1. If no local token, try to fetch it quietly via Cloud Function
-        if (!activeToken) {
-          console.log("No token in storage. Attempting quiet fetch...");
-          try {
-            const getDriveTokenFn = httpsCallable(functions, 'getDriveToken');
-            const result = await getDriveTokenFn();
-            activeToken = (result.data as { accessToken: string }).accessToken;
-            if (activeToken) {
-              localStorage.setItem("harp_drive_token", activeToken);
-              setDriveToken(activeToken);
-            }
-          } catch (e) {
-            console.log("No existing Drive connection found or fetch failed.");
-          }
-        } else {
-          setDriveToken(activeToken);
-        }
-
-        try {
-          const photoBlob = await getBytes("harp_user_photo_blob");
-          if (photoBlob) {
-            const localUrl = URL.createObjectURL(photoBlob);
-            setUser((prev) => (prev ? { ...prev, photoURL: localUrl } : currentUser));
-          }
-        } catch (e) {
-          console.error("Failed to load cached photo/session", e);
-        }
-
-        loadLibrary();
-
-        // Background Sync
-        if (activeToken) {
-          LibraryServices.syncFromDrive(activeToken)
-            .then(() => {
-              console.log("Background sync completed");
-              loadLibrary();
-            })
-            .catch((e) => {
-              console.log("Background sync skipped", e);
-            });
-        }
-      } else {
-        // Fallback: Try to restore offline session from IDB
-        try {
-          const session = await getBytes("harp_user_session");
-          if (session) {
-            console.log("Restored offline session");
-            setUser(session as User); // Cast to User type
-          } else {
-            setUser(null);
-          }
-        } catch (e) {
-          console.error("Failed to restore offline session", e);
-          setUser(null);
-        }
-      }
-      setIsAuthLoading(false);
-    };
-
-    const unsubscribe = onAuthStateChanged(auth, handleAuthChange);
-    return () => unsubscribe();
-  }, []);
+    // Background Sync when token is available
+    if (driveToken) {
+      LibraryServices.syncFromDrive(driveToken)
+        .then(() => {
+          console.log("Background sync completed");
+          loadLibrary();
+        })
+        .catch(console.error);
+      loadLibrary();
+    } else if (user) {
+      // Offline mode or just logged in user without token yet
+      loadLibrary();
+    }
+  }, [user, driveToken]);
 
   // Handle Session Expiry (401 from Drive API)
   useEffect(() => {
@@ -206,32 +123,15 @@ const AppContent = () => {
 
   const handleRefreshSession = async () => {
     try {
-      // 1. Try Quiet Refresh first
-      const getDriveTokenFn = httpsCallable(functions, 'getDriveToken');
-      const result = await getDriveTokenFn();
-      const token = (result.data as { accessToken: string }).accessToken;
-
-      if (token) {
-        setDriveToken(token);
-        localStorage.setItem("harp_drive_token", token);
-        setIsSessionExpired(false);
-        toast.success("Session revalidated!");
-        return;
-      }
-
-      // 2. If quiet fail, we need to show the ConnectPage or re-auth
-      // But since the Modal is showing, we can trigger a re-auth popup here
-      // However, the best way is to send them back to ConnectPage
+      await refreshSession();
       setIsSessionExpired(false);
-      localStorage.removeItem("harp_drive_token");
-      setDriveToken(null);
-
+      toast.success("Session revalidated!");
     } catch (e) {
       console.error("Failed to refresh session", e);
       setIsSessionExpired(false);
-      localStorage.removeItem("harp_drive_token");
-      setDriveToken(null);
       toast.error("Session expired. Please reconnect Drive.");
+      // Optional: Force logout if refresh totally fails logic?
+      // logout();
     }
   };
 
@@ -394,26 +294,7 @@ const AppContent = () => {
   };
 
   const handleLoginSuccess = async (token: string, user: User) => {
-    setDriveToken(token);
-    setUser(user);
-    localStorage.setItem("harp_drive_token", token);
-    // Cache FULL user session (idb-keyval)
-    await setBytes("harp_user_session", user.toJSON());
-
-    // Cache photo as blob
-    if (user.photoURL) {
-      try {
-        const response = await fetch(user.photoURL);
-        const blob = await response.blob();
-        await setBytes("harp_user_photo_blob", blob);
-
-        // Use local blob URL immediately
-        const localUrl = URL.createObjectURL(blob);
-        setUser((prev) => prev ? { ...prev, photoURL: localUrl } : user);
-      } catch (e) {
-        console.error("Failed to cache user photo", e);
-      }
-    }
+    await login(token, user);
 
     loadLibrary();
 
@@ -429,31 +310,10 @@ const AppContent = () => {
   };
 
   const handleLogout = async () => {
-    // 1. Clear Local Storage immediately
-    localStorage.removeItem("harp_drive_token");
-    localStorage.removeItem("harp_user_cache");
-
-    // Clear IDB async (don't await strictly if not needed for UI, but fast enough)
-    delBytes("harp_user_session");
-    delBytes("harp_user_photo_blob");
-
-    // 2. Clear React State (Updates UI to Login Screen immediately)
-    setDriveToken(null);
-    setUser(null);
     setIsPlaying(false);
     setSongs([]);
     setShowPlayer(false);
-
-    // 3. Perform Network Cleanup in Background
-    if (driveToken) {
-      DriveApiServices.revokeToken(driveToken).catch(e => console.error("Token revoke failed:", e));
-    }
-
-    try {
-      await signOut(auth);
-    } catch (e) {
-      console.error("Firebase signout failed:", e);
-    }
+    await logout();
   };
 
   const togglePlay = () => {
@@ -807,9 +667,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <ToastProvider>
-        <div className="antialiased text-slate-900 min-h-screen bg-slate-950">
-          <AppContent />
-        </div>
+        <DriveProvider>
+          <div className="antialiased text-slate-900 min-h-screen bg-slate-950">
+            <AppContent />
+          </div>
+        </DriveProvider>
       </ToastProvider>
     </BrowserRouter>
   );

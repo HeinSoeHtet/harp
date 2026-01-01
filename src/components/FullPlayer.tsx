@@ -22,6 +22,7 @@ import { parseLRC, type LyricLine } from "../utils/lrcParser";
 import { LyricServices } from "../services/lyricServices";
 import { LibraryServices } from "../services/libraryServices";
 import { useToast } from "../context/ToastContext";
+import { useDrive } from "../context/DriveContext";
 
 interface FullPlayerProps {
   currentSong: Song;
@@ -97,6 +98,7 @@ export function FullPlayer({
   const [hasImageError, setHasImageError] = useState(false);
 
   const toast = useToast();
+  const { driveToken } = useDrive();
 
   // Close volume when clicking outside
   useEffect(() => {
@@ -168,9 +170,8 @@ export function FullPlayer({
 
       if (results && results.length > 0) {
         setLyrics(results);
-        const token = localStorage.getItem("harp_drive_token");
-        if (token) {
-          await LibraryServices.saveGeneratedLyrics(token, currentSong, results, true);
+        if (driveToken) {
+          await LibraryServices.saveGeneratedLyrics(driveToken, currentSong, results, true);
         }
         toast.success("Lyrics found!");
       } else {
@@ -196,10 +197,9 @@ export function FullPlayer({
     setIsGenerating(true);
     try {
       let audioBlob = currentSong.audioBlob;
-      const token = localStorage.getItem("harp_drive_token");
 
-      if (!audioBlob && token) {
-        const hydrated = await LibraryServices.fetchSongMedia(token, currentSong, true);
+      if (!audioBlob && driveToken) {
+        const hydrated = await LibraryServices.fetchSongMedia(driveToken, currentSong, true);
         audioBlob = hydrated.audioBlob;
       }
 
@@ -208,8 +208,8 @@ export function FullPlayer({
       const generated = await LyricServices.generateLyricsAI(audioBlob, model, duration);
       setLyrics(generated);
 
-      if (token) {
-        await LibraryServices.saveGeneratedLyrics(token, currentSong, generated, true);
+      if (driveToken) {
+        await LibraryServices.saveGeneratedLyrics(driveToken, currentSong, generated, true);
       }
       toast.success("AI Generation complete!");
     } catch (e) {

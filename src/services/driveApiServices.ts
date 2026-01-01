@@ -36,8 +36,9 @@ async function fetchWithAuth(url: string, options: RequestInit, triggerAuthError
 
       if (newAccessToken) {
         console.log("Quiet revalidation successful. Retrying request...");
-        // Update local storage so subsequent calls use the new token
-        localStorage.setItem("harp_drive_token", newAccessToken);
+
+        // Dispatch event to update Context
+        window.dispatchEvent(new CustomEvent("harp-token-refreshed", { detail: newAccessToken }));
 
         // Update the headers in the options object for the retry
         const newOptions = { ...options };

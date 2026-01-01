@@ -576,7 +576,6 @@ export function FullPlayer({
             <div className="space-y-3">
               {[
                 { id: "gpt-4o-transcribe", name: "GPT 4o Transcribe", desc: "Most accurate for songs", icon: "🎙️" },
-                { id: "deepgram", name: "Deepgram Nova 3", desc: "Lightning fast transcription", icon: "⚡" },
                 { id: "gemini", name: "Gemini 2.5 Flash", desc: "Best for complex audio", icon: "✨" }
               ].map((model) => (
                 <button

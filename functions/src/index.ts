@@ -1,7 +1,6 @@
 import { setGlobalOptions } from "firebase-functions/v2";
 import { onCall, HttpsError, CallableRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
-import { createClient } from "@deepgram/sdk";
 import OpenAI from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import * as admin from "firebase-admin";
@@ -14,7 +13,6 @@ admin.initializeApp();
 // Set global options (Max instances prevents run-away costs)
 setGlobalOptions({ maxInstances: 10 });
 
-const deepgramApiKey = process.env.DEEPGRAM_API_KEY;
 const openaiApiKey = process.env.OPENAI_API_KEY;
 const geminiApiKey = process.env.GEMINI_API_KEY;
 const CLIENT_ID = process.env.DRIVE_CLIENT_ID;
@@ -214,36 +212,7 @@ export const transcribeSong = onCall(
         let text = "";
 
         try {
-            if (model === "deepgram") {
-                if (!deepgramApiKey) throw new Error("Deepgram API Key missing.");
-                const deepgram = createClient(deepgramApiKey);
-                const response = await deepgram.listen.prerecorded.transcribeFile(
-                    buffer,
-                    {
-                        model: "nova-2",
-                        smart_format: true,
-                        language: "en",
-                        mimetype: mimeType || "audio/mp3",
-                        utterances: false,
-                        paragraphs: false,
-                    }
-                );
-
-                const anyResponse = response as any;
-                if (anyResponse.error) {
-                    logger.error("Deepgram API Error:", anyResponse.error);
-                    throw new Error(`Deepgram transcription failed: ${JSON.stringify(anyResponse.error)}`);
-                }
-
-                // Support both { result: ... } and direct result structures
-                const results = anyResponse.result || anyResponse;
-                text = results?.results?.channels?.[0]?.alternatives?.[0]?.transcript || "";
-
-                if (!text) {
-                    logger.warn("Deepgram returned empty transcript. Full response:", JSON.stringify(results));
-                }
-            }
-            else if (model === "gpt-4o-transcribe") {
+            if (model === "gpt-4o-transcribe") {
                 if (!openaiApiKey) throw new Error("OpenAI API Key missing.");
 
                 const openai = new OpenAI({ apiKey: openaiApiKey });

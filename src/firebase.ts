@@ -1,7 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFunctions } from "firebase/functions";
-import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -16,7 +15,6 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Services
 export const auth = getAuth(app);
-export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 
 
@@ -34,10 +32,8 @@ const isLocalhost = Boolean(
 );
 
 if (isLocalhost) {
-  const { connectFirestoreEmulator } = await import("firebase/firestore");
   const { connectFunctionsEmulator } = await import("firebase/functions");
 
-  connectFirestoreEmulator(db, "127.0.0.1", 8085);
   connectFunctionsEmulator(functions, "127.0.0.1", 5001);
 }
 export default app;

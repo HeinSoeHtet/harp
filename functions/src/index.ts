@@ -173,6 +173,43 @@ export const transcribeSong = onCall(
             throw new HttpsError("invalid-argument", "Payload exceeds 8MB limit.");
         }
 
+        // --- Rate Limiting Check (10 calls/user, daily refresh) ---
+        const usageRef = admin.firestore().collection("user_usage").doc(request.auth.uid);
+
+        await admin.firestore().runTransaction(async (transaction) => {
+            const usageDoc = await transaction.get(usageRef);
+            const data = usageDoc.data();
+
+            let currentCount = data?.transcribe_count || 0;
+            const lastCalledAt = data?.lastCalledAt?.toDate() || null;
+
+            const now = new Date();
+
+            // Check if it's a new day (UTC Midnight reset)
+            const isNewDay = !lastCalledAt ||
+                now.getUTCFullYear() !== lastCalledAt.getUTCFullYear() ||
+                now.getUTCMonth() !== lastCalledAt.getUTCMonth() ||
+                now.getUTCDate() !== lastCalledAt.getUTCDate();
+
+            if (isNewDay) {
+                currentCount = 0;
+            }
+
+            if (currentCount >= 10) {
+                throw new HttpsError("resource-exhausted", "Daily limit of 10 transcriptions reached. Please try again tomorrow.");
+            }
+
+            // Determine the new count value
+            const newCount = currentCount + 1;
+
+            // Update usage stats atomically
+            transaction.set(usageRef, {
+                transcribe_count: newCount,
+                lastCalledAt: FieldValue.serverTimestamp()
+            }, { merge: true });
+        });
+        // ---------------------------------------------------------
+
         const buffer = Buffer.from(audioBase64, "base64");
         let text = "";
 

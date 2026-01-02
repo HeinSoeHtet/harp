@@ -12,11 +12,13 @@ export default [
     pluginJs.configs.recommended,
     ...tseslint.configs.recommended,
     {
+        ignores: ["lib/**/*", "node_modules/**/*"]
+    },
+    {
         rules: {
             "no-unused-vars": "off", // Handled by TS
             "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
             "@typescript-eslint/no-explicit-any": "warn"
-        },
-        ignores: ["lib/**/*", "node_modules/**/*"]
+        }
     }
 ];

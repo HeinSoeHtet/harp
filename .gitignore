@@ -25,3 +25,6 @@ dist-ssr
 .env
 service-account.json
 .firebase/*
+
+
+stats.html

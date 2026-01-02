@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Loader2, HardDrive, LogIn, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { signInWithPopup } from "firebase/auth";
@@ -21,6 +22,7 @@ const CLIENT_ID = import.meta.env.VITE_DRIVE_CLIENT_ID;
 export function ConnectPage({ onConnect, currentUser }: ConnectPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     setIsLoading(true);
@@ -51,6 +53,7 @@ export function ConnectPage({ onConnect, currentUser }: ConnectPageProps) {
             try {
               // 2. Exchange code via Cloud Function
               const saveTokenFn = httpsCallable<{ code: string }, { success: boolean, accessToken: string }>(functions, 'saveDriveToken');
+
               const result = await saveTokenFn({ code: response.code });
 
               if (result.data.success && result.data.accessToken) {
@@ -153,6 +156,21 @@ export function ConnectPage({ onConnect, currentUser }: ConnectPageProps) {
           Harp needs specific permissions to read/write music files. <br />
           Your login data is never shared with third parties.
         </p>
+
+        <div className="flex justify-center gap-6 mt-6 border-t border-white/5 pt-6">
+          <button
+            onClick={() => navigate("/privacy")}
+            className="text-white/30 hover:text-white/60 text-[10px] font-medium uppercase tracking-wider transition-colors"
+          >
+            Privacy
+          </button>
+          <button
+            onClick={() => navigate("/terms")}
+            className="text-white/30 hover:text-white/60 text-[10px] font-medium uppercase tracking-wider transition-colors"
+          >
+            Terms
+          </button>
+        </div>
       </div>
     </div>
   );

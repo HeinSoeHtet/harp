@@ -12,6 +12,9 @@ import { ConnectPage } from "./pages/ConnectPage";
 import { AddToPlaylistDialog } from "./components/AddToPlaylistDialog";
 import { LibraryPage } from "./pages/LibraryPage";
 import { PlaylistPage } from "./pages/PlaylistPage";
+import { HomePage } from "./pages/HomePage";
+import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
+import { TermsOfServicePage } from "./pages/TermsOfServicePage";
 import { SideNav } from "./layouts/SideNav";
 import { PlayerBar } from "./components/PlayerBar";
 import { FullPlayer } from "./components/FullPlayer";
@@ -586,7 +589,11 @@ const AppContent = () => {
                   />
                 )
               } />
-              <Route path="/" element={<Navigate to="/library" replace />} />
+              <Route path="/privacy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms" element={<TermsOfServicePage />} />
+              <Route path="/" element={
+                user && driveToken ? <Navigate to="/playlist" replace /> : <HomePage />
+              } />
               <Route path="*" element={<Navigate to="/library" replace />} />
             </Routes>
           </div>

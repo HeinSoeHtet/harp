@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { type User } from "firebase/auth";
@@ -81,18 +81,16 @@ const AppContent = () => {
   const currentSong = playbackQueue[currentSongIndex];
   const audioUrl = useBlobUrl(currentSong?.audioBlob);
 
-  const loadLibrary = async () => {
+  const loadLibrary = useCallback(async () => {
     try {
       const localSongs = await LibraryServices.getLocalSongs();
       const sorted = localSongs.sort((a, b) => b.addedAt - a.addedAt);
       setSongs(sorted);
-      if (playbackQueue.length === 0) {
-        setPlaybackQueue(sorted);
-      }
+      setPlaybackQueue(prev => prev.length === 0 ? sorted : prev);
     } catch (e) {
       console.error("Failed to load library:", e);
     }
-  };
+  }, []);
 
   useEffect(() => {
     // Background Sync when token is available
@@ -108,7 +106,7 @@ const AppContent = () => {
       // Offline mode or just logged in user without token yet
       loadLibrary();
     }
-  }, [user, driveToken]);
+  }, [user, driveToken, loadLibrary]);
 
   // Handle Session Expiry (401 from Drive API)
   useEffect(() => {
@@ -530,6 +528,7 @@ const AppContent = () => {
 
       {/* Edit Song Dialog */}
       <EditSongDialog
+        key={editingSong?.id}
         song={editingSong}
         isOpen={!!editingSong}
         isSaving={isSavingEdit}

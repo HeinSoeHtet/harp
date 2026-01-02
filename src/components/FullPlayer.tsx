@@ -120,7 +120,7 @@ export function FullPlayer({
   // Memoize the blob to prevent unnecessary URL creation/revocation if the blob reference changes but content is same
   const stableImageBlob = useMemo(() => {
     return currentSong.imageBlob;
-  }, [currentSong.id, currentSong.imageBlob?.size, currentSong.imageBlob?.type]);
+  }, [currentSong.imageBlob]);
 
   // Use custom hook for blob URL management
   const coverUrl = useBlobUrl(stableImageBlob);

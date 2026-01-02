@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Loader2, Save, X } from "lucide-react";
 import type { Song } from "../services/libraryServices";
 
@@ -17,15 +17,8 @@ export function EditSongDialog({
     onClose,
     onSave,
 }: EditSongDialogProps) {
-    const [title, setTitle] = useState("");
-    const [artist, setArtist] = useState("");
-
-    useEffect(() => {
-        if (song) {
-            setTitle(song.title);
-            setArtist(song.artist);
-        }
-    }, [song]);
+    const [title, setTitle] = useState(song?.title || "");
+    const [artist, setArtist] = useState(song?.artist || "");
 
     if (!isOpen || !song) return null;
 

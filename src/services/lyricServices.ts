@@ -44,7 +44,7 @@ const optimizeAudio = async (inputBlob: Blob): Promise<Blob> => {
     try {
       await ffmpeg.deleteFile(inputName);
       await ffmpeg.deleteFile(outputName);
-    } catch (e) { /* ignore */ }
+    } catch { /* ignore */ }
   }
 };
 

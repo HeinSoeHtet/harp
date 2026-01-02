@@ -54,7 +54,7 @@ export function LibraryPage({
   const loadLibrary = async () => {
     setIsLoading(true);
     try {
-      let localSongs = await LibraryServices.getLocalSongs();
+      const localSongs = await LibraryServices.getLocalSongs();
 
       /* Auto-restore removed: Sync happens only on login or manual trigger */
 
@@ -330,7 +330,7 @@ function UploadSongDialog({
         const newTitle = metadata.title || file.name.replace(/\.[^/.]+$/, ""); // fallback to filename
         const newArtist = metadata.artist || "";
         const newAlbum = metadata.album || "";
-        let newImage = metadata.picture || null;
+        const newImage = metadata.picture || null;
 
         // 3. Auto-Fetch Thumbnail if missing (REMOVED)
         // Last.fm implementation removed. We only use embedded picture.

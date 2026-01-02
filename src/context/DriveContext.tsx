@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { type User, onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, functions } from "../firebase";
 import { httpsCallable } from "firebase/functions";
@@ -16,6 +16,7 @@ interface DriveContextType {
 
 const DriveContext = createContext<DriveContextType | undefined>(undefined);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useDrive() {
     const context = useContext(DriveContext);
     if (!context) {
@@ -77,7 +78,7 @@ export function DriveProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const refreshSession = async () => {
+    const refreshSession = useCallback(async () => {
         try {
             const getDriveTokenFn = httpsCallable<{ accessToken: string }>(functions, 'getDriveToken');
             const result = await getDriveTokenFn();
@@ -92,7 +93,7 @@ export function DriveProvider({ children }: { children: ReactNode }) {
             // Don't auto-logout here, let the UI handle the error state if needed
             // or the interceptor will eventually fail
         }
-    };
+    }, []);
 
     useEffect(() => {
         const handleAuthChange = async (currentUser: User | null) => {
@@ -108,7 +109,9 @@ export function DriveProvider({ children }: { children: ReactNode }) {
                         const localUrl = URL.createObjectURL(photoBlob);
                         setUser((prev) => (prev ? { ...prev, photoURL: localUrl } : currentUser));
                     }
-                } catch { }
+                } catch {
+                    // Ignore photo restore failure
+                }
 
                 // 2. Fetch Token Quietly
                 if (!driveToken) {
@@ -132,7 +135,7 @@ export function DriveProvider({ children }: { children: ReactNode }) {
 
         const unsubscribe = onAuthStateChanged(auth, handleAuthChange);
         return () => unsubscribe();
-    }, []);
+    }, [driveToken, refreshSession]);
 
     // Listen for Token Refreshes from Service Layer
     useEffect(() => {

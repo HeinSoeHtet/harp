@@ -13,6 +13,32 @@ admin.initializeApp();
 // Set global options (Max instances prevents run-away costs)
 setGlobalOptions({ maxInstances: 10 });
 
+const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
+
+/**
+ * Helper to get the authenticated user, supporting production tokens in the emulator.
+ */
+async function getAuthenticatedUser(request: CallableRequest<any>) {
+    if (request.auth) return request.auth;
+
+    if (isEmulator) {
+        const authHeader = request.rawRequest.headers.authorization;
+        if (authHeader && authHeader.startsWith("Bearer ")) {
+            const idToken = authHeader.split("Bearer ")[1];
+            try {
+                const decodedToken = await admin.auth().verifyIdToken(idToken);
+                return {
+                    uid: decodedToken.uid,
+                    token: decodedToken as any
+                };
+            } catch (e: any) {
+                console.warn("Manual token verification failed in emulator. Is the project ID correct?", e.message);
+            }
+        }
+    }
+    return null;
+}
+
 const openaiApiKey = process.env.OPENAI_API_KEY;
 const geminiApiKey = process.env.GEMINI_API_KEY;
 const CLIENT_ID = process.env.DRIVE_CLIENT_ID;
@@ -40,9 +66,11 @@ interface SaveDriveTokenData {
 }
 
 export const saveDriveToken = onCall(
-    { cors: true, enforceAppCheck: true },
+    { cors: true, enforceAppCheck: !isEmulator },
     async (request: CallableRequest<SaveDriveTokenData>): Promise<SaveDriveTokenResponse> => {
-        if (!request.auth) {
+        const auth = isEmulator ? await getAuthenticatedUser(request) : request.auth;
+
+        if (!auth) {
             throw new HttpsError("unauthenticated", "User must be logged in.");
         }
 
@@ -59,7 +87,7 @@ export const saveDriveToken = onCall(
             if (tokens.refresh_token) {
                 await admin.firestore()
                     .collection("user_secrets")
-                    .doc(request.auth.uid)
+                    .doc(auth.uid)
                     .set({
                         drive_refresh_token: tokens.refresh_token,
                         updatedAt: FieldValue.serverTimestamp(),
@@ -87,10 +115,12 @@ export const saveDriveToken = onCall(
 );
 
 export const getDriveToken = onCall(
-    { cors: true, enforceAppCheck: true },
+    { cors: true, enforceAppCheck: !isEmulator },
     async (request: CallableRequest<void>): Promise<GetDriveTokenResponse> => {
+        const auth = isEmulator ? await getAuthenticatedUser(request) : request.auth;
+
         // 1. Security Check
-        if (!request.auth) {
+        if (!auth) {
             throw new HttpsError("unauthenticated", "User must be logged in.");
         }
 
@@ -98,7 +128,7 @@ export const getDriveToken = onCall(
             // 2. Read from root collection 'user_secrets' -> doc(UID)
             const docSnap = await admin.firestore()
                 .collection("user_secrets")
-                .doc(request.auth.uid)
+                .doc(auth.uid)
                 .get();
 
             if (!docSnap.exists) {
@@ -133,7 +163,7 @@ export const getDriveToken = onCall(
             if (error.message && error.message.includes("invalid_grant")) {
                 await admin.firestore()
                     .collection("user_secrets")
-                    .doc(request.auth.uid)
+                    .doc(auth.uid)
                     .delete();
 
                 throw new HttpsError("permission-denied", "Connection expired. Please reconnect Drive.");
@@ -149,10 +179,11 @@ export const transcribeSong = onCall(
         timeoutSeconds: 300,
         memory: "512MiB",    // Optimized for ~5MB files
         cors: true,          // Allow client calls
-        enforceAppCheck: true,
+        enforceAppCheck: !isEmulator,
     },
     async (request) => {
-        if (!request.auth) {
+        const auth = isEmulator ? await getAuthenticatedUser(request) : request.auth;
+        if (!auth) {
             throw new HttpsError("unauthenticated", "User must be logged in.");
         }
 
@@ -173,7 +204,7 @@ export const transcribeSong = onCall(
         }
 
         // --- Rate Limiting Check (10 calls/user, daily refresh) ---
-        const usageRef = admin.firestore().collection("user_usage").doc(request.auth.uid);
+        const usageRef = admin.firestore().collection("user_usage").doc(auth.uid);
 
         await admin.firestore().runTransaction(async (transaction) => {
             const usageDoc = await transaction.get(usageRef);

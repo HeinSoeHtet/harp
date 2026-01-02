@@ -40,7 +40,7 @@ interface SaveDriveTokenData {
 }
 
 export const saveDriveToken = onCall(
-    { cors: true },
+    { cors: true, enforceAppCheck: true },
     async (request: CallableRequest<SaveDriveTokenData>): Promise<SaveDriveTokenResponse> => {
         if (!request.auth) {
             throw new HttpsError("unauthenticated", "User must be logged in.");
@@ -87,7 +87,7 @@ export const saveDriveToken = onCall(
 );
 
 export const getDriveToken = onCall(
-    { cors: true },
+    { cors: true, enforceAppCheck: true },
     async (request: CallableRequest<void>): Promise<GetDriveTokenResponse> => {
         // 1. Security Check
         if (!request.auth) {
@@ -149,6 +149,7 @@ export const transcribeSong = onCall(
         timeoutSeconds: 300,
         memory: "512MiB",    // Optimized for ~5MB files
         cors: true,          // Allow client calls
+        enforceAppCheck: true,
     },
     async (request) => {
         if (!request.auth) {

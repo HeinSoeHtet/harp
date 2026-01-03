@@ -59,7 +59,7 @@ export function PrivacyPolicyPage() {
                     <section>
                         <h2 className="text-xl font-bold text-white mb-4">5. Contact</h2>
                         <p>
-                            If you have questions about this policy, please contact us at support@harp-music.app.
+                            If you have questions about this policy, please contact us at harpmusicapp@gmail.com.
                         </p>
                     </section>
                 </div>

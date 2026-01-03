@@ -35,7 +35,7 @@ export function HomePage() {
                 <div className="max-w-7xl mx-auto text-center">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold uppercase tracking-widest mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <Sparkles className="w-3 h-3" />
-                        <span>AI-Powered Music Experience</span>
+                        <span>AI-Powered Lyric Transcription</span>
                     </div>
 
                     <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-8 tracking-tight animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
@@ -46,7 +46,7 @@ export function HomePage() {
                     </h1>
 
                     <p className="max-w-2xl mx-auto text-white/50 text-lg md:text-xl mb-12 leading-relaxed animate-in fade-in slide-in-from-bottom-12 duration-700 delay-200">
-                        Harp transforms your Google Drive into a high-fidelity music streaming service.
+                        Harp transforms your Google Drive into a high-quality music streaming service.
                         No subscriptions. No limits. Just your personal library, anywhere.
                     </p>
 

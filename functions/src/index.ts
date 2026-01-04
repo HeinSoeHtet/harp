@@ -66,7 +66,7 @@ interface SaveDriveTokenData {
 }
 
 export const saveDriveToken = onCall(
-    { cors: true, enforceAppCheck: !isEmulator },
+    { cors: !isEmulator, enforceAppCheck: !isEmulator },
     async (request: CallableRequest<SaveDriveTokenData>): Promise<SaveDriveTokenResponse> => {
         const auth = isEmulator ? await getAuthenticatedUser(request) : request.auth;
 
@@ -115,7 +115,7 @@ export const saveDriveToken = onCall(
 );
 
 export const getDriveToken = onCall(
-    { cors: true, enforceAppCheck: !isEmulator },
+    { cors: !isEmulator, enforceAppCheck: !isEmulator },
     async (request: CallableRequest<void>): Promise<GetDriveTokenResponse> => {
         const auth = isEmulator ? await getAuthenticatedUser(request) : request.auth;
 
@@ -178,7 +178,7 @@ export const transcribeSong = onCall(
     {
         timeoutSeconds: 300,
         memory: "512MiB",    // Optimized for ~5MB files
-        cors: true,          // Allow client calls
+        cors: !isEmulator,          // Allow client calls
         enforceAppCheck: !isEmulator,
     },
     async (request) => {

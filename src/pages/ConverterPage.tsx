@@ -1,20 +1,20 @@
 import { RefreshCw, Music2, Upload, Download, Loader2, Plus, Sparkles, CheckCircle2, Video } from "lucide-react";
 import { useState, useRef } from "react";
-import { LibraryServices, type Song } from "../services/libraryServices";
+
 import { useToast } from "../context/ToastContext";
 import { useDrive } from "../context/DriveContext";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import { UploadSongDialog } from "../components/UploadSongDialog";
 
 export function ConverterPage() {
     const [file, setFile] = useState<File | null>(null);
     const [isConverting, setIsConverting] = useState(false);
     const [progress, setProgress] = useState(0);
     const [convertedBlob, setConvertedBlob] = useState<Blob | null>(null);
-    const [metadata, setMetadata] = useState<any>(null);
-    const [isAddingToLibrary, setIsAddingToLibrary] = useState(false);
     const [isDone, setIsDone] = useState(false);
     const [isFFmpegLoading, setIsFFmpegLoading] = useState(false);
+    const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
 
     const ffmpegRef = useRef(new FFmpeg());
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -52,12 +52,6 @@ export function ConverterPage() {
             setConvertedBlob(null);
             setIsDone(false);
             setProgress(0);
-
-            // Set basic filename as title, avoid early metadata retrieval
-            setMetadata({
-                title: selectedFile.name.replace(/\.[^/.]+$/, ""),
-                artist: "Converting...",
-            });
         }
     };
 
@@ -124,43 +118,14 @@ export function ConverterPage() {
 
     const handleAddToLibrary = async () => {
         if (!convertedBlob || !file) return;
-        setIsAddingToLibrary(true);
+        setIsUploadDialogOpen(true);
+    };
 
-        try {
-            const songId = crypto.randomUUID();
-            const fileName = file.name.replace(/\.[^/.]+$/, "") + ".mp3";
-            const audioFile = new File([convertedBlob], fileName, { type: "audio/mpeg" });
-
-            const newSong: Song = {
-                id: songId,
-                title: metadata?.title || file.name.replace(/\.[^/.]+$/, ""),
-                artist: metadata?.artist || "Anonymous",
-                album: metadata?.album || "Unknown",
-                duration: metadata?.duration || 0,
-                addedAt: Date.now(),
-                audioBlob: audioFile,
-                imageBlob: metadata?.picture || null,
-            };
-
-            await LibraryServices.saveSongLocal(newSong);
-
-            if (driveToken) {
-                toast.success("Saved to local. Syncing to Drive...");
-                await LibraryServices.syncSongToDrive(driveToken, newSong, true);
-                toast.success("Synced to Google Drive!");
-            } else {
-                toast.success("Added to library locally.");
-            }
-
-            setIsDone(false);
-            setFile(null);
-            setConvertedBlob(null);
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to add to library.");
-        } finally {
-            setIsAddingToLibrary(false);
-        }
+    const handleUploadSuccess = () => {
+        setIsDone(false);
+        setFile(null);
+        setConvertedBlob(null);
+        setIsUploadDialogOpen(false);
     };
 
     const handleDownload = () => {
@@ -299,14 +264,9 @@ export function ConverterPage() {
 
                                     <button
                                         onClick={handleAddToLibrary}
-                                        disabled={isAddingToLibrary}
-                                        className="w-full py-4 bg-white text-black rounded-2xl font-bold flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+                                        className="w-full py-4 bg-white text-black rounded-2xl font-bold flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95"
                                     >
-                                        {isAddingToLibrary ? (
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                        ) : (
-                                            <Plus className="w-5 h-5" />
-                                        )}
+                                        <Plus className="w-5 h-5" />
                                         Add to Library
                                     </button>
 
@@ -341,6 +301,15 @@ export function ConverterPage() {
                     FFmpeg processing happens entirely in your browser. Video files may take longer to process depending on their size and resolution.
                 </p>
             </div>
+
+            {isUploadDialogOpen && convertedBlob && file && (
+                <UploadSongDialog
+                    driveToken={driveToken}
+                    onClose={() => setIsUploadDialogOpen(false)}
+                    onSuccess={handleUploadSuccess}
+                    initialFile={new File([convertedBlob], file.name.replace(/\.[^/.]+$/, "") + ".mp3", { type: "audio/mpeg" })}
+                />
+            )}
         </div>
     );
 }

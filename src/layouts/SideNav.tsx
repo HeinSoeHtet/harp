@@ -25,6 +25,7 @@ export function SideNav({ onDisconnect, onSync, user }: SideNavProps) {
   const navItems = [
     { id: "playlist", label: "Playlist", icon: ListMusic, path: "/playlist" },
     { id: "library", label: "Library", icon: Library, path: "/library" },
+    { id: "converter", label: "Converter", icon: RefreshCw, path: "/converter" },
   ];
 
   const handleNavClick = (path: string) => {

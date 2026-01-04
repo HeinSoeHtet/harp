@@ -16,6 +16,7 @@ import { HomePage } from "./pages/HomePage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { TermsOfServicePage } from "./pages/TermsOfServicePage";
 import { SideNav } from "./layouts/SideNav";
+import { ConverterPage } from "./pages/ConverterPage";
 import { PlayerBar } from "./components/PlayerBar";
 import { FullPlayer } from "./components/FullPlayer";
 import { EditSongDialog } from "./components/EditSongDialog";
@@ -605,6 +606,7 @@ const AppContent = () => {
               } />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
               <Route path="/terms" element={<TermsOfServicePage />} />
+              <Route path="/converter" element={<ConverterPage />} />
               <Route path="/" element={
                 user && driveToken ? <Navigate to="/playlist" replace /> : <HomePage />
               } />

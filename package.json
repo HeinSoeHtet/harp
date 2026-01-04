@@ -20,7 +20,6 @@
     "clsx": "^2.1.1",
     "firebase": "^12.7.0",
     "idb-keyval": "^6.2.2",
-    "lamejs": "^1.2.1",
     "lucide-react": "^0.562.0",
     "music-metadata-browser": "^2.5.11",
     "react": "^19.2.0",

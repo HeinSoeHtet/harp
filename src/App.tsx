@@ -148,10 +148,24 @@ const AppContent = () => {
     const targetSong = targetQueue[index];
     if (!targetSong) return;
 
+    // Validate already hydrated songs
+    if (targetSong.audioBlob && targetSong.audioBlob.type !== "audio/mpeg" && !targetSong.title.toLowerCase().endsWith(".mp3")) {
+      toast.error("Unsupported audio format. Only MP3 is supported.");
+      return;
+    }
+
     if (!targetSong.audioBlob && driveToken) {
       setIsBuffering(true);
       try {
         const hydrated = await LibraryServices.fetchSongMedia(driveToken, targetSong, true);
+
+        // Final sanity check after hydration
+        if (hydrated.audioBlob && hydrated.audioBlob.type !== "audio/mpeg" && !hydrated.title.toLowerCase().endsWith(".mp3")) {
+          toast.error("Unsupported audio format. Only MP3 is supported.");
+          setIsBuffering(false);
+          return;
+        }
+
         const newQueue = [...targetQueue];
         newQueue[index] = hydrated;
         setPlaybackQueue(newQueue);

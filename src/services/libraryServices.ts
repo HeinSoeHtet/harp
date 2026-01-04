@@ -36,6 +36,7 @@ interface RemoteSongMetadata {
   album: string;
   duration: number;
   addedAt: number;
+  mimeType?: string;
   lyrics?: { time: number; text: string }[];
 }
 
@@ -143,7 +144,13 @@ export const LibraryServices = {
     // 5. Reconcile Songs (Delete removed, Download missing)
     const localSongs = await values();
     const localSongMap = new Map(localSongs.filter((s: any) => s.id).map((s: any) => [s.id, s]));
-    const remoteSongs = Object.values(remoteLib.songs);
+
+    // Filter remote songs to ensure only MP3s enter the system
+    const remoteSongs = Object.values(remoteLib.songs).filter(s =>
+      s.mimeType === "audio/mpeg" ||
+      s.title.toLowerCase().endsWith(".mp3") ||
+      (localSongMap.get(s.id)?.audioBlob?.type === "audio/mpeg")
+    );
     const remoteIds = new Set(remoteSongs.map(s => s.id));
 
     // A. Detect Deleted Songs (Local but not Remote)
@@ -347,6 +354,7 @@ export const LibraryServices = {
         album: updatedSong.album,
         duration: updatedSong.duration,
         addedAt: updatedSong.addedAt,
+        mimeType: (song.audioBlob as File).type || "audio/mpeg",
         // lyrics: updatedSong.lyrics, // Don't save lyrics to JSON
       };
 

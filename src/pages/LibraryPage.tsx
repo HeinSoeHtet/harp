@@ -13,6 +13,7 @@ import { useState, useEffect } from "react";
 import { LibraryServices, type Song } from "../services/libraryServices";
 import { MetadataServices } from "../services/metadataServices";
 import { SongContextMenu } from "../components/SongContextMenu";
+import { useToast } from "../context/ToastContext";
 
 // ... (Helper & Hook remain the same)
 const generateId = () => crypto.randomUUID();
@@ -304,6 +305,7 @@ function UploadSongDialog({
   driveToken: string | null;
   onSuccess: (s: Song) => void;
 }) {
+  const toast = useToast();
   const [formData, setFormData] = useState({
     title: "",
     author: "",
@@ -319,6 +321,10 @@ function UploadSongDialog({
   const handleFileChange = async (e: any) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.type !== "audio/mpeg" && !file.name.toLowerCase().endsWith(".mp3")) {
+        toast.error("Only MP3 files are supported.");
+        return;
+      }
       // 1. Set the file immediately
       setFormData((prev) => ({ ...prev, audioFile: file }));
 
@@ -417,11 +423,11 @@ function UploadSongDialog({
                   {formData.audioFile ? formData.audioFile.name : "Select MP3 File"}
                 </span>
                 <span className="text-xs text-white/30 block">
-                  Audio Only (MP3, WAV)
+                  Audio Only (MP3)
                 </span>
                 <input
                   type="file"
-                  accept="audio/*"
+                  accept=".mp3,audio/mpeg"
                   hidden
                   onChange={handleFileChange}
                   required

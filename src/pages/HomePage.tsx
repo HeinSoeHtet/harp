@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { HardDrive, Sparkles, Shield, ChevronRight, Play } from "lucide-react";
 
 export function HomePage() {
@@ -100,8 +100,8 @@ export function HomePage() {
                             <span className="text-white/40 text-sm font-bold tracking-tight">harp</span>
                         </div>
                         <div className="flex gap-8">
-                            <button onClick={() => navigate("/privacy")} className="text-white/40 hover:text-white transition-colors text-sm">Privacy Policy</button>
-                            <button onClick={() => navigate("/terms")} className="text-white/40 hover:text-white transition-colors text-sm">Terms of Service</button>
+                            <Link to="/privacy" className="text-white/40 hover:text-white transition-colors text-sm">Privacy Policy</Link>
+                            <Link to="/terms" className="text-white/40 hover:text-white transition-colors text-sm">Terms of Service</Link>
                         </div>
                         <p className="text-white/20 text-xs">
                             &copy; {new Date().getFullYear()} Harp Music. All rights reserved.

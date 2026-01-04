@@ -272,7 +272,7 @@ export function FullPlayer({
   return (
     <div className="fixed inset-0 z-50 bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 mt-safe">
+      <div className="flex items-center justify-between p-6 pt-safe">
         <button
           onClick={onClose}
           className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/80"
@@ -465,7 +465,7 @@ export function FullPlayer({
       </div>
 
       {/* Controls Container (Fixed Bottom) */}
-      <div className="w-full bg-gradient-to-t from-black/40 via-black/20 to-transparent p-6 pb-12 z-10">
+      <div className="w-full bg-gradient-to-t from-black/40 via-black/20 to-transparent p-6 pb-12 pb-safe z-10">
         <div className="max-w-2xl mx-auto">
           {/* Progress */}
           <div className="mb-6">

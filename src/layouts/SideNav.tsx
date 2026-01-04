@@ -47,7 +47,7 @@ export function SideNav({ onDisconnect, onSync, user }: SideNavProps) {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/5 backdrop-blur-xl z-30 flex items-center px-4 border-b border-white/5">
+      <div className="md:hidden fixed top-0 left-0 right-0 h-[calc(4rem+env(safe-area-inset-top))] bg-slate-900/40 backdrop-blur-xl z-30 flex items-center px-4 pt-safe border-b border-white/5">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-lg rounded-full border border-white/20 text-white"
@@ -81,7 +81,7 @@ export function SideNav({ onDisconnect, onSync, user }: SideNavProps) {
           }
         `}
       >
-        <div className="flex flex-col h-full p-6">
+        <div className="flex flex-col h-full p-6 pt-safe pb-safe">
           {/* Logo Area (Desktop) */}
           <div className="hidden md:flex items-center gap-3 mb-8 text-white">
             <div className="w-9 h-9">

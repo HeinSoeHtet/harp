@@ -153,6 +153,24 @@
   *::-webkit-scrollbar {
     display: none;
   }
+
+  /* Safe Area Utilities */
+  .mt-safe {
+    margin-top: env(safe-area-inset-top);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .mb-safe {
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .px-safe {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
 }
 
 /**

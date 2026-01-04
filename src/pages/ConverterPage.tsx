@@ -1,7 +1,6 @@
 import { RefreshCw, Music2, Upload, Download, Loader2, Plus, Sparkles, CheckCircle2, Video } from "lucide-react";
 import { useState, useRef } from "react";
 import { LibraryServices, type Song } from "../services/libraryServices";
-import { MetadataServices } from "../services/metadataServices";
 import { useToast } from "../context/ToastContext";
 import { useDrive } from "../context/DriveContext";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
@@ -54,13 +53,11 @@ export function ConverterPage() {
             setIsDone(false);
             setProgress(0);
 
-            // Extract metadata if possible (might fail for some video types but we try)
-            try {
-                const meta = await MetadataServices.extractMetadata(selectedFile);
-                setMetadata(meta);
-            } catch (e) {
-                console.warn("Metadata extraction skipped for this file type");
-            }
+            // Set basic filename as title, avoid early metadata retrieval
+            setMetadata({
+                title: selectedFile.name.replace(/\.[^/.]+$/, ""),
+                artist: "Converting...",
+            });
         }
     };
 
@@ -86,14 +83,25 @@ export function ConverterPage() {
 
             // FFmpeg command to convert to MP3
             // -i input -vn (ignore video) -acodec libmp3lame -ab 128k output.mp3
-            await ffmpeg.exec([
+            const args = [
                 "-i", inputFileName,
-                "-vn",
                 "-acodec", "libmp3lame",
                 "-ab", "128k",
                 "-ar", "44100",
-                outputFileName
-            ]);
+                "-map_metadata", "0",
+                "-id3v2_version", "3",
+            ];
+
+            if (isVideo) {
+                args.push("-vn");
+            } else {
+                // For audio files, preserve the attached picture (mapped as a video stream)
+                args.push("-c:v", "copy");
+            }
+
+            args.push(outputFileName);
+
+            await ffmpeg.exec(args);
 
             const data = await ffmpeg.readFile(outputFileName);
             const blob = new Blob([data as any], { type: "audio/mpeg" });

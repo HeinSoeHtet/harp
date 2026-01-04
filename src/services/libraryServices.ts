@@ -1,6 +1,7 @@
 import { set, values, get, del, clear } from "idb-keyval";
 import { DriveApiServices } from "./driveApiServices";
 import { parseLRC } from "../utils/lrcParser";
+import { MetadataServices } from "./metadataServices";
 
 // --- Local Data Types (App State) ---
 export interface Song {
@@ -301,6 +302,8 @@ export const LibraryServices = {
       console.log("Starting Drive Sync...");
       const folderId = await DriveApiServices.initLibraryFolder(accessToken, triggerAuthError);
 
+      const extracted = await MetadataServices.extractMetadata(song.audioBlob);
+
       const audioDriveId = await DriveApiServices.uploadAsset(
         accessToken,
         folderId,
@@ -308,12 +311,19 @@ export const LibraryServices = {
         triggerAuthError
       );
 
+      // Use extracted metadata if current values are defaults or missing
+      const finalTitle = song.title || extracted.title || "Unknown Title";
+      const finalArtist = (song.artist === "Anonymous" || !song.artist) ? (extracted.artist || "Anonymous") : song.artist;
+      const finalAlbum = (song.album === "Unknown" || !song.album) ? (extracted.album || "Unknown") : song.album;
+      const finalDuration = song.duration || extracted.duration || 0;
+      const finalImage = song.imageBlob || extracted.picture || null;
+
       let imageDriveId: string | undefined = undefined;
-      if (song.imageBlob) {
+      if (finalImage) {
         imageDriveId = await DriveApiServices.uploadAsset(
           accessToken,
           folderId,
-          song.imageBlob as File,
+          finalImage as File,
           triggerAuthError
         );
       }
@@ -330,6 +340,11 @@ export const LibraryServices = {
 
       const updatedSong: Song = {
         ...song,
+        title: finalTitle,
+        artist: finalArtist,
+        album: finalAlbum,
+        duration: finalDuration,
+        imageBlob: finalImage,
         driveId: audioDriveId,
         driveImageId: imageDriveId,
         driveLyricId: lyricDriveId,

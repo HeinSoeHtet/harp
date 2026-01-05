@@ -232,6 +232,11 @@
   resolved "https://registry.yarnpkg.com/@capacitor/ios/-/ios-8.0.0.tgz#4a3d242693a08573742f0eddc1ba967b46f5a62b"
   integrity sha512-gwSn6X4uHYNHlM8zZmVmM1zjEhexxbHpPSSnH1DZkp8o3zdK/RmH8tmDma+3zPZrhhTSrMC7sT24dKTOvV8www==
 
+"@codetrix-studio/capacitor-google-auth@^3.4.0-rc.4":
+  version "3.4.0-rc.4"
+  resolved "https://registry.yarnpkg.com/@codetrix-studio/capacitor-google-auth/-/capacitor-google-auth-3.4.0-rc.4.tgz#bcc4471f7f4fdfc3d2bd5000600cd5ed4979872b"
+  integrity sha512-d548/xKrbMHHbzMYSWnlgZCLZYo2zzY7Onrh3x8ujojrb7atkNK68I6su5WgmaBt4E+R4gxBsWams4554aOFjA==
+
 "@colors/colors@1.5.0":
   version "1.5.0"
   resolved "https://registry.npmjs.org/@colors/colors/-/colors-1.5.0.tgz"

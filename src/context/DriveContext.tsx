@@ -4,6 +4,8 @@ import { auth, functions } from "../firebase";
 import { httpsCallable } from "firebase/functions";
 import { get as getBytes, set as setBytes, del as delBytes } from "idb-keyval";
 import { DriveApiServices } from "../services/driveApiServices";
+import { Capacitor } from "@capacitor/core";
+import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 
 interface DriveContextType {
     user: User | null;
@@ -72,6 +74,9 @@ export function DriveProvider({ children }: { children: ReactNode }) {
         }
 
         try {
+            if (Capacitor.isNativePlatform()) {
+                await GoogleAuth.signOut();
+            }
             await signOut(auth);
         } catch (e) {
             console.error("Signout failed", e);

@@ -4,6 +4,9 @@ import { useState } from "react";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider, functions } from "../firebase";
 import { httpsCallable } from "firebase/functions";
+import { Capacitor } from "@capacitor/core";
+import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 
 interface ConnectPageProps {
   onConnect: (accessToken: string, user: any) => void;
@@ -28,7 +31,13 @@ export function ConnectPage({ onConnect, currentUser }: ConnectPageProps) {
     setIsLoading(true);
     setError("");
     try {
-      await signInWithPopup(auth, googleProvider);
+      if (Capacitor.isNativePlatform()) {
+        const result = await GoogleAuth.signIn();
+        const credential = GoogleAuthProvider.credential(result.authentication.idToken);
+        await signInWithCredential(auth, credential);
+      } else {
+        await signInWithPopup(auth, googleProvider);
+      }
     } catch (err) {
       console.error("Login Error:", err);
       setError("Login failed. Please check your connection.");
@@ -43,41 +52,60 @@ export function ConnectPage({ onConnect, currentUser }: ConnectPageProps) {
     setError("");
 
     try {
-      // 1. Get Auth Code via GIS
-      const client = window.google.accounts.oauth2.initCodeClient({
-        client_id: CLIENT_ID,
-        scope: "https://www.googleapis.com/auth/drive.file",
-        ux_mode: "popup",
-        callback: async (response: any) => {
-          if (response.code) {
-            try {
-              // 2. Exchange code via Cloud Function
-              const saveTokenFn = httpsCallable<{ code: string }, { success: boolean, accessToken: string }>(functions, 'saveDriveToken');
+      if (Capacitor.isNativePlatform()) {
+        const result = await GoogleAuth.signIn();
+        const authCode = result.serverAuthCode;
 
-              const result = await saveTokenFn({ code: response.code });
+        if (authCode) {
+          const saveTokenFn = httpsCallable<{ code: string }, { success: boolean, accessToken: string }>(functions, 'saveDriveToken');
+          const exchangeResult = await saveTokenFn({ code: authCode });
 
-              if (result.data.success && result.data.accessToken) {
-                onConnect(result.data.accessToken, currentUser);
-              } else {
-                setError("Failed to generate drive session.");
+          if (exchangeResult.data.success && exchangeResult.data.accessToken) {
+            onConnect(exchangeResult.data.accessToken, currentUser);
+          } else {
+            setError("Failed to generate drive session.");
+          }
+        } else {
+          setError("Failed to get authorization code.");
+        }
+        setIsLoading(false);
+      } else {
+        // 1. Get Auth Code via GIS
+        const client = window.google.accounts.oauth2.initCodeClient({
+          client_id: CLIENT_ID,
+          scope: "https://www.googleapis.com/auth/drive.file",
+          ux_mode: "popup",
+          callback: async (response: any) => {
+            if (response.code) {
+              try {
+                // 2. Exchange code via Cloud Function
+                const saveTokenFn = httpsCallable<{ code: string }, { success: boolean, accessToken: string }>(functions, 'saveDriveToken');
+
+                const result = await saveTokenFn({ code: response.code });
+
+                if (result.data.success && result.data.accessToken) {
+                  onConnect(result.data.accessToken, currentUser);
+                } else {
+                  setError("Failed to generate drive session.");
+                }
+              } catch (e: any) {
+                console.error("Code exchange failed", e);
+                setError(e.message || "Failed to connect Drive.");
+              } finally {
+                setIsLoading(false);
               }
-            } catch (e: any) {
-              console.error("Code exchange failed", e);
-              setError(e.message || "Failed to connect Drive.");
-            } finally {
+            } else {
+              setError("Authorization failed.");
               setIsLoading(false);
             }
-          } else {
-            setError("Authorization failed.");
-            setIsLoading(false);
-          }
-        },
-      });
+          },
+        });
 
-      client.requestCode();
+        client.requestCode();
+      }
     } catch (err) {
-      console.error("GIS Error:", err);
-      setError("Could not initialize Google Drive connection.");
+      console.error("Auth Error:", err);
+      setError("Could not initialize Google connection.");
       setIsLoading(false);
     }
   };

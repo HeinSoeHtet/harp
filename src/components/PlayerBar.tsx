@@ -200,7 +200,7 @@ export function PlayerBar({
 
       {/* Extras: Play (Mobile), Expand & Close */}
       <div
-        className="flex justify-end gap-1 md:gap-3 items-center"
+        className="flex justify-end gap-1 md:gap-3 items-center md:flex-none md:w-[30%]"
         onClick={(e) => e.stopPropagation()}
       >
         <button

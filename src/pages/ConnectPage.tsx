@@ -28,34 +28,48 @@ export function ConnectPage({ onConnect, currentUser }: ConnectPageProps) {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-    setIsLoading(true);
     setError("");
-    try {
-      if (Capacitor.isNativePlatform()) {
+
+    if (Capacitor.isNativePlatform()) {
+      setIsLoading(true);
+      try {
         const result = await GoogleAuth.signIn();
         const credential = GoogleAuthProvider.credential(result.authentication.idToken);
         await signInWithCredential(auth, credential);
-      } else {
-        await signInWithPopup(auth, googleProvider);
+      } catch (err) {
+        console.error("Native Login Error:", err);
+        setError("Login failed. Please check your connection.");
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error("Login Error:", err);
-      setError("Login failed. Please check your connection.");
-    } finally {
-      setIsLoading(false);
+      return;
+    }
+
+    // Web Platform
+    try {
+      // In Safari, popups must be triggered immediately after a user gesture.
+      // We avoid 'await' before this call to keep the gesture "fresh".
+      await signInWithPopup(auth, googleProvider);
+    } catch (err: any) {
+      console.error("Web Login Error:", err);
+      if (err.code === 'auth/popup-blocked') {
+        setError("Popup blocked. Redirecting to login...");
+        const { signInWithRedirect } = await import("firebase/auth");
+        await signInWithRedirect(auth, googleProvider);
+      } else {
+        setError("Login failed. Please try again.");
+      }
     }
   };
 
-  const handleConnectDrive = async () => {
+  const handleConnectDrive = () => {
     if (!currentUser) return;
-    setIsLoading(true);
     setError("");
 
-    try {
-      if (Capacitor.isNativePlatform()) {
-        const result = await GoogleAuth.signIn();
+    if (Capacitor.isNativePlatform()) {
+      setIsLoading(true);
+      GoogleAuth.signIn().then(async (result) => {
         const authCode = result.serverAuthCode;
-
         if (authCode) {
           const saveTokenFn = httpsCallable<{ code: string }, { success: boolean, accessToken: string }>(functions, 'saveDriveToken');
           const exchangeResult = await saveTokenFn({ code: authCode });
@@ -68,43 +82,50 @@ export function ConnectPage({ onConnect, currentUser }: ConnectPageProps) {
         } else {
           setError("Failed to get authorization code.");
         }
+      }).catch(err => {
+        console.error("Native Drive Connect Error:", err);
+        setError("Failed to connect Drive.");
+      }).finally(() => {
         setIsLoading(false);
-      } else {
-        // 1. Get Auth Code via GIS
-        const client = window.google.accounts.oauth2.initCodeClient({
-          client_id: CLIENT_ID,
-          scope: "https://www.googleapis.com/auth/drive.file",
-          ux_mode: "popup",
-          callback: async (response: any) => {
-            if (response.code) {
-              try {
-                // 2. Exchange code via Cloud Function
-                const saveTokenFn = httpsCallable<{ code: string }, { success: boolean, accessToken: string }>(functions, 'saveDriveToken');
+      });
+      return;
+    }
 
-                const result = await saveTokenFn({ code: response.code });
+    // Web Platform - Google Identity Services
+    try {
+      setIsLoading(true);
+      const client = window.google.accounts.oauth2.initCodeClient({
+        client_id: CLIENT_ID,
+        scope: "https://www.googleapis.com/auth/drive.file",
+        ux_mode: "popup",
+        callback: async (response: any) => {
+          if (response.code) {
+            try {
+              const saveTokenFn = httpsCallable<{ code: string }, { success: boolean, accessToken: string }>(functions, 'saveDriveToken');
+              const result = await saveTokenFn({ code: response.code });
 
-                if (result.data.success && result.data.accessToken) {
-                  onConnect(result.data.accessToken, currentUser);
-                } else {
-                  setError("Failed to generate drive session.");
-                }
-              } catch (e: any) {
-                console.error("Code exchange failed", e);
-                setError(e.message || "Failed to connect Drive.");
-              } finally {
-                setIsLoading(false);
+              if (result.data.success && result.data.accessToken) {
+                onConnect(result.data.accessToken, currentUser);
+              } else {
+                setError("Failed to generate drive session.");
               }
-            } else {
-              setError("Authorization failed.");
+            } catch (e: any) {
+              console.error("Code exchange failed", e);
+              setError(e.message || "Failed to connect Drive.");
+            } finally {
               setIsLoading(false);
             }
-          },
-        });
+          } else {
+            setError("Authorization failed.");
+            setIsLoading(false);
+          }
+        },
+      });
 
-        client.requestCode();
-      }
+      // Crucial: Call this immediately to preserve user gesture context for Safari
+      client.requestCode();
     } catch (err) {
-      console.error("Auth Error:", err);
+      console.error("GIS Error:", err);
       setError("Could not initialize Google connection.");
       setIsLoading(false);
     }

@@ -26,20 +26,27 @@ googleProvider.setCustomParameters({
 
 export const functions = getFunctions(app);
 
-const isLocalhost = Boolean(
-  window.location.hostname === "localhost" ||
-  window.location.hostname === "[::1]" ||
-  window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
-);
+import { Capacitor } from "@capacitor/core";
+import { FirebaseAppCheck } from "@capacitor-firebase/app-check";
 
-if (!isLocalhost) {
+if (Capacitor.isNativePlatform()) {
+  FirebaseAppCheck.initialize({
+    debugToken: !import.meta.env.PROD ? import.meta.env.VITE_ANDROID_APP_CHECK_DEBUG_TOKEN : undefined,
+    isTokenAutoRefreshEnabled: true,
+  });
+} else {
+  if (!import.meta.env.PROD) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = import.meta.env.VITE_WEB_APP_CHECK_DEBUG_TOKEN;
+  }
+
   initializeAppCheck(app, {
     provider: new ReCaptchaEnterpriseProvider(import.meta.env.VITE_RECAPTCHA_ID),
     isTokenAutoRefreshEnabled: true,
   });
 }
 
-if (isLocalhost) {
+if (!import.meta.env.PROD) {
   const { connectFunctionsEmulator } = await import("firebase/functions");
 
   connectFunctionsEmulator(functions, "127.0.0.1", 5001);

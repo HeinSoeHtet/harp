@@ -64,7 +64,7 @@ export function PlayerBar({
 
   return (
     <div
-      className="h-24 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 flex items-center px-6 w-full z-40 cursor-pointer md:cursor-default"
+      className="h-auto min-h-24 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 flex items-center px-6 w-full z-40 pb-safe cursor-pointer md:cursor-default"
       onClick={(e) => {
         if (
           window.innerWidth < 768 &&

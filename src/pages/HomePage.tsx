@@ -13,7 +13,7 @@ export function HomePage() {
             </div>
 
             {/* Navigation Backdrop */}
-            <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-slate-950/20 backdrop-blur-md">
+            <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-slate-950/20 backdrop-blur-md pt-safe">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 overflow-hidden">

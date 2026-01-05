@@ -461,7 +461,7 @@ const AppContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-slate-900 relative">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-slate-900 relative pt-safe pb-safe">
       <div className="absolute inset-0 bg-[url('/background-img.webp')] bg-cover bg-center opacity-20 pointer-events-none" />
 
       {/* Sync Overlay */}
@@ -569,7 +569,7 @@ const AppContent = () => {
         )}
 
         <main className="flex-1 flex flex-col relative min-w-0">
-          <div className={`flex-1 overflow-y-auto transition-[transform,opacity] duration-300 ${user && driveToken ? 'p-4 pb-32' : ''} ${isPlayerExpanded ? 'scale-95 opacity-50 pointer-events-none' : ''}`}>
+          <div className={`flex-1 overflow-y-auto transition-[transform,opacity] duration-300 ${user && driveToken ? 'p-4 pt-20 md:pt-4 pb-32' : 'p-4'} ${isPlayerExpanded ? 'scale-95 opacity-50 pointer-events-none' : ''}`}>
             <Routes>
               <Route path="/connect" element={
                 user && driveToken ? <Navigate to="/library" replace /> : <ConnectPage onConnect={handleLoginSuccess} currentUser={user} />
@@ -690,7 +690,7 @@ export default function App() {
     <BrowserRouter>
       <ToastProvider>
         <DriveProvider>
-          <div className="antialiased text-slate-900 min-h-screen bg-slate-950">
+          <div className="antialiased text-slate-900 min-h-screen bg-slate-950 flex flex-col">
             <AppContent />
           </div>
         </DriveProvider>

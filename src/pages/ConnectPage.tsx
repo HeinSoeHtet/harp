@@ -71,20 +71,25 @@ export function ConnectPage({ onConnect, currentUser }: ConnectPageProps) {
       GoogleAuth.signIn().then(async (result) => {
         const authCode = result.serverAuthCode;
         if (authCode) {
-          const saveTokenFn = httpsCallable<{ code: string }, { success: boolean, accessToken: string }>(functions, 'saveDriveToken');
-          const exchangeResult = await saveTokenFn({ code: authCode });
+          try {
+            const saveTokenFn = httpsCallable<{ code: string }, { success: boolean, accessToken: string }>(functions, 'saveDriveToken');
+            const exchangeResult = await saveTokenFn({ code: authCode });
 
-          if (exchangeResult.data.success && exchangeResult.data.accessToken) {
-            onConnect(exchangeResult.data.accessToken, currentUser);
-          } else {
-            setError("Failed to generate drive session.");
+            if (exchangeResult.data.success && exchangeResult.data.accessToken) {
+              onConnect(exchangeResult.data.accessToken, currentUser);
+            } else {
+              setError("Server failed to exchange tokens.");
+            }
+          } catch (funcErr: any) {
+            console.error("Cloud Function Error:", funcErr);
+            setError(`Server Error: ${funcErr.message || "Failed to exchange tokens"}`);
           }
         } else {
-          setError("Failed to get authorization code.");
+          setError("Google did not return an authorization code.");
         }
       }).catch(err => {
-        console.error("Native Drive Connect Error:", err);
-        setError("Failed to connect Drive.");
+        console.error("Native Google Login (Drive) Error:", err);
+        setError(`Native Auth Error: ${err.message || "Could not get authorization code"}`);
       }).finally(() => {
         setIsLoading(false);
       });

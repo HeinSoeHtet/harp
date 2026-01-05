@@ -31,7 +31,7 @@ import { FirebaseAppCheck } from "@capacitor-firebase/app-check";
 
 if (Capacitor.isNativePlatform()) {
   FirebaseAppCheck.initialize({
-    debugToken: !import.meta.env.PROD ? import.meta.env.VITE_ANDROID_APP_CHECK_DEBUG_TOKEN : undefined,
+    debugToken: import.meta.env.VITE_ANDROID_APP_CHECK_DEBUG_TOKEN,
     isTokenAutoRefreshEnabled: true,
   });
 } else {

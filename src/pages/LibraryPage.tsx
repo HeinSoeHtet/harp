@@ -76,7 +76,7 @@ export function LibraryPage({
   const uniqueAlbums = Array.from(new Set(songs.map((s) => s.album)));
 
   return (
-    <div className="h-full flex flex-col max-w-7xl mx-auto px-4 py-8 relative">
+    <div className="h-full flex flex-col max-w-7xl mx-auto relative">
       {/* Header and Buttons remain the same */}
       <div className="flex items-center justify-between mb-6 flex-shrink-0">
         <div className="flex gap-2">
@@ -110,7 +110,7 @@ export function LibraryPage({
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 pb-4">
+      <div className="flex-1 min-h-0">
         <div className="bg-white/10 backdrop-blur-md rounded-2xl h-full flex flex-col relative overflow-hidden">
 
           {selectedEntity ? (

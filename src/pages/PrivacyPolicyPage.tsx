@@ -1,21 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
 
 export function PrivacyPolicyPage() {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white p-6 md:p-12 selection:bg-purple-500/30">
-            <div className="max-w-3xl mx-auto">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-12group"
-                >
-                    <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                    Back
-                </button>
-
-                <h1 className="text-4xl font-black mb-8">Privacy Policy</h1>
+        <div className="fixed inset-0 z-[60] bg-slate-950 text-white overflow-y-auto selection:bg-purple-500/30">
+            <div className="max-w-3xl mx-auto p-6 md:p-12 pt-safe pb-safe">
+                <div className="mb-12">
+                    <h1 className="text-4xl font-black">Privacy Policy</h1>
+                </div>
 
                 <div className="space-y-8 text-white/70 leading-relaxed">
                     <section>
@@ -64,7 +57,16 @@ export function PrivacyPolicyPage() {
                     </section>
                 </div>
 
-                <div className="mt-20 pt-8 border-t border-white/5 text-center text-white/20 text-xs">
+                <div className="mt-12">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="w-full py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold transition-all active:scale-95 border border-white/5"
+                    >
+                        Close
+                    </button>
+                </div>
+
+                <div className="mt-12 pt-8 border-t border-white/5 text-center text-white/20 text-xs">
                     Last updated: January 2, 2026
                 </div>
             </div>

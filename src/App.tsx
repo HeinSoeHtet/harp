@@ -461,7 +461,7 @@ const AppContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-slate-900 relative pt-safe pb-safe">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-slate-900 relative pt-safe">
       <div className="absolute inset-0 bg-[url('/background-img.webp')] bg-cover bg-center opacity-20 pointer-events-none" />
 
       {/* Sync Overlay */}
@@ -563,7 +563,7 @@ const AppContent = () => {
         </div>
       )}
 
-      <div className="flex h-screen overflow-hidden relative z-10">
+      <div className="flex h-[100dvh] overflow-hidden">
         {user && driveToken && (
           <SideNav user={user} onDisconnect={handleLogout} onSync={handleManualSync} />
         )}
@@ -614,53 +614,54 @@ const AppContent = () => {
             </Routes>
           </div>
 
-          {user && driveToken && (
-            <>
-              {/* Player Bar (Always Visible unless expanded) */}
-              <div className={`absolute bottom-0 left-0 right-0 z-40 transition-transform duration-500 ${showPlayer && !isPlayerExpanded ? 'translate-y-0' : 'translate-y-full'}`}>
-                <PlayerBar
-                  currentSong={currentSong || null}
-                  isPlaying={isPlaying}
-                  onTogglePlay={togglePlay}
-                  onNext={() => handleNext(true)}
-                  onPrevious={handlePrevious}
-                  onExpand={() => setIsPlayerExpanded(true)}
-                  currentTime={currentTime}
-                  isShuffle={isShuffle}
-                  isRepeat={repeatMode}
-                  onToggleShuffle={handleToggleShuffle}
-                  onToggleRepeat={handleToggleRepeat}
-                  onSeek={handleSeek}
-                  onClose={handleClosePlayer}
-                />
-              </div>
-
-              {/* Full Screen Player Overlay */}
-              <div className={`fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl transition-[transform,opacity] duration-500 flex flex-col ${isPlayerExpanded ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}>
-                {showPlayer && (
-                  <FullPlayer
-                    currentSong={currentSong}
-                    isPlaying={isPlaying}
-                    onTogglePlay={togglePlay}
-                    onNext={() => handleNext(true)}
-                    onPrevious={handlePrevious}
-                    onSeek={handleSeek}
-                    currentTime={currentTime}
-                    duration={audioRef.current?.duration || currentSong?.duration || 0}
-                    isShuffle={isShuffle}
-                    isRepeat={repeatMode}
-                    onClose={handleCollapsePlayer}
-                    volume={volume}
-                    onVolumeChange={handleVolumeChange}
-                    onToggleShuffle={handleToggleShuffle}
-                    onToggleRepeat={handleToggleRepeat}
-                  />
-                )}
-              </div>
-            </>
-          )}
         </main>
       </div>
+
+      {user && driveToken && (
+        <>
+          {/* Player Bar (Always Visible unless expanded) */}
+          <div className={`fixed bottom-0 left-0 right-0 z-40 md:z-[70] transition-transform duration-500 ${showPlayer && !isPlayerExpanded ? 'translate-y-0' : 'translate-y-full'}`}>
+            <PlayerBar
+              currentSong={currentSong || null}
+              isPlaying={isPlaying}
+              onTogglePlay={togglePlay}
+              onNext={() => handleNext(true)}
+              onPrevious={handlePrevious}
+              onExpand={() => setIsPlayerExpanded(true)}
+              currentTime={currentTime}
+              isShuffle={isShuffle}
+              isRepeat={repeatMode}
+              onToggleShuffle={handleToggleShuffle}
+              onToggleRepeat={handleToggleRepeat}
+              onSeek={handleSeek}
+              onClose={handleClosePlayer}
+            />
+          </div>
+
+          {/* Full Screen Player Overlay */}
+          <div className={`fixed inset-0 z-[200] bg-slate-950/95 backdrop-blur-xl transition-[transform,opacity] duration-500 flex flex-col ${isPlayerExpanded ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}>
+            {showPlayer && (
+              <FullPlayer
+                currentSong={currentSong}
+                isPlaying={isPlaying}
+                onTogglePlay={togglePlay}
+                onNext={() => handleNext(true)}
+                onPrevious={handlePrevious}
+                onSeek={handleSeek}
+                currentTime={currentTime}
+                duration={audioRef.current?.duration || currentSong?.duration || 0}
+                isShuffle={isShuffle}
+                isRepeat={repeatMode}
+                onClose={handleCollapsePlayer}
+                volume={volume}
+                onVolumeChange={handleVolumeChange}
+                onToggleShuffle={handleToggleShuffle}
+                onToggleRepeat={handleToggleRepeat}
+              />
+            )}
+          </div>
+        </>
+      )}
 
       {/* Hidden Audio Element */}
       <audio
@@ -690,7 +691,7 @@ export default function App() {
     <BrowserRouter>
       <ToastProvider>
         <DriveProvider>
-          <div className="antialiased text-slate-900 min-h-screen bg-slate-950 flex flex-col">
+          <div className="antialiased text-slate-900 min-h-[100dvh] bg-slate-950 flex flex-col">
             <AppContent />
           </div>
         </DriveProvider>

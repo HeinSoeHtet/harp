@@ -48,7 +48,7 @@ export function SideNav({ onDisconnect, onSync, user }: SideNavProps) {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-[calc(4rem+env(safe-area-inset-top))] bg-slate-900/40 backdrop-blur-xl z-30 flex items-center px-4 pt-safe border-b border-white/5">
+      <div className="md:hidden fixed top-0 left-0 right-0 h-[calc(4rem+env(safe-area-inset-top))] bg-slate-900/40 backdrop-blur-xl z-40 flex items-center px-4 pt-safe border-b border-white/5">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-lg rounded-full border border-white/20 text-white"
@@ -66,7 +66,7 @@ export function SideNav({ onDisconnect, onSync, user }: SideNavProps) {
       {/* Overlay for mobile */}
       {isMobileMenuOpen && (
         <div
-          className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-md z-[100]"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -74,7 +74,8 @@ export function SideNav({ onDisconnect, onSync, user }: SideNavProps) {
       {/* Side Navigation */}
       <div
         className={`
-          fixed md:static top-0 left-0 h-full w-64 bg-slate-900/50 backdrop-blur-xl z-40 
+          fixed md:relative top-0 left-0 h-full w-64 bg-slate-900/90 md:bg-slate-900/50 backdrop-blur-xl md:flex-shrink-0
+          ${isMobileMenuOpen ? "z-[101]" : "z-20"} md:z-[60]
           transform transition-transform duration-300 ease-in-out
           ${isMobileMenuOpen
             ? "translate-x-0"
@@ -82,7 +83,7 @@ export function SideNav({ onDisconnect, onSync, user }: SideNavProps) {
           }
         `}
       >
-        <div className="flex flex-col h-full p-6 pt-safe pb-safe">
+        <div className="flex flex-col h-full p-6 pt-safe">
           {/* Logo Area (Desktop) */}
           <div className="hidden md:flex items-center gap-3 mb-8 text-white">
             <div className="w-9 h-9">

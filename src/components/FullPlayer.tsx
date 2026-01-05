@@ -270,7 +270,7 @@ export function FullPlayer({
   }, [currentSong.id]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300">
+    <div className="fixed inset-0 z-[200] bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300">
       {/* Header */}
       <div className="flex items-center justify-between p-6 pt-safe">
         <button
@@ -324,11 +324,11 @@ export function FullPlayer({
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6 relative">
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center p-6 relative overflow-hidden">
         {!showLyrics ? (
           // Standard Player View
-          <div className="w-full max-w-md flex flex-col items-center">
-            <div className="relative group w-full aspect-square max-w-[350px] mb-12">
+          <div className="w-full max-w-md flex flex-col items-center justify-center">
+            <div className="relative group w-full aspect-square max-w-[220px] sm:max-w-[350px] mb-4 sm:mb-12">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl blur-2xl opacity-40 group-hover:opacity-60 transition-opacity animate-pulse-slow transform-gpu" />
               {coverUrl && !hasImageError ? (
                 <img
@@ -340,15 +340,15 @@ export function FullPlayer({
                 />
               ) : (
                 <div className="relative w-full h-full bg-white/10 rounded-3xl flex items-center justify-center border border-white/10">
-                  <Music2 className="w-24 h-24 text-white/20" />
+                  <Music2 className="w-16 h-16 sm:w-24 sm:h-24 text-white/20" />
                 </div>
               )}
             </div>
-            <div className="text-center w-full mb-8">
-              <h1 className="text-white text-3xl font-bold mb-2 truncate">
+            <div className="text-center w-full mb-2 sm:mb-8">
+              <h1 className="text-white text-xl sm:text-3xl font-bold mb-0.5 sm:mb-2 truncate">
                 {currentSong.title}
               </h1>
-              <p className="text-white/60 text-xl truncate">
+              <p className="text-white/60 text-base sm:text-xl truncate">
                 {currentSong.artist}
               </p>
             </div>
@@ -465,10 +465,23 @@ export function FullPlayer({
       </div>
 
       {/* Controls Container (Fixed Bottom) */}
-      <div className="w-full bg-gradient-to-t from-black/40 via-black/20 to-transparent p-6 pb-12 pb-safe z-10">
-        <div className="max-w-2xl mx-auto">
+      <div className="w-full bg-gradient-to-t from-black/40 via-black/20 to-transparent p-6 pb-8 z-10">
+        <div className="max-w-2xl mx-auto flex flex-col gap-6">
+          {/* Lyrics Toggle */}
+          <div className="flex justify-center">
+            <button
+              onClick={() => setShowLyrics(!showLyrics)}
+              className={`p-3 rounded-full transition-all ${showLyrics
+                ? "bg-purple-500 text-white shadow-lg shadow-purple-500/30"
+                : "bg-white/5 text-white/40 hover:bg-white/10 hover:text-white"
+                }`}
+            >
+              <ListMusic className="w-6 h-6" />
+            </button>
+          </div>
+
           {/* Progress */}
-          <div className="mb-6">
+          <div>
             <div
               ref={progressRef}
               className="h-2 bg-white/10 rounded-full cursor-pointer group"
@@ -488,67 +501,52 @@ export function FullPlayer({
           </div>
 
           {/* Buttons */}
-          <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={onToggleShuffle}
-                className={`p-2 ${isShuffle ? "text-purple-400" : "text-white/40 hover:text-white"
-                  }`}
-              >
-                <Shuffle className="w-6 h-6" />
-              </button>
-
-              <button
-                onClick={onPrevious}
-                className="p-2 text-white hover:text-purple-400 transition-colors"
-                title="Previous"
-              >
-                <SkipBack className="w-8 h-8" />
-              </button>
-
-              <button
-                onClick={onTogglePlay}
-                className="w-16 h-16 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg shadow-white/10"
-              >
-                {isPlaying ? (
-                  <Pause className="w-8 h-8 text-black fill-current" />
-                ) : (
-                  <Play className="w-8 h-8 text-black fill-current ml-1" />
-                )}
-              </button>
-
-              <button
-                onClick={onNext}
-                className="p-2 text-white hover:text-purple-400 transition-colors"
-                title="Next"
-              >
-                <SkipForward className="w-8 h-8" />
-              </button>
-
-              <button
-                onClick={onToggleRepeat}
-                className={`p-2 transition-colors ${isRepeat !== "none" ? "text-purple-400" : "text-white/40 hover:text-white"
-                  }`}
-              >
-                {isRepeat === "one" ? (
-                  <Repeat1 className="w-6 h-6" />
-                ) : (
-                  <Repeat className="w-6 h-6" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Lyrics Toggle */}
-          <div className="flex justify-center mt-8">
+          <div className="flex items-center justify-between">
             <button
-              onClick={() => setShowLyrics(!showLyrics)}
-              className={`p-3 rounded-full transition-all ${showLyrics
-                ? "bg-purple-500 text-white shadow-lg shadow-purple-500/30"
-                : "bg-white/5 text-white/40 hover:bg-white/10 hover:text-white"
+              onClick={onToggleShuffle}
+              className={`p-2 ${isShuffle ? "text-purple-400" : "text-white/40 hover:text-white"
                 }`}
             >
-              <ListMusic className="w-6 h-6" />
+              <Shuffle className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+
+            <button
+              onClick={onPrevious}
+              className="p-2 text-white hover:text-purple-400 transition-colors"
+              title="Previous"
+            >
+              <SkipBack className="w-6 h-6 sm:w-8 sm:h-8" />
+            </button>
+
+            <button
+              onClick={onTogglePlay}
+              className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg shadow-white/10"
+            >
+              {isPlaying ? (
+                <Pause className="w-6 h-6 sm:w-8 sm:h-8 text-black fill-current" />
+              ) : (
+                <Play className="w-6 h-6 sm:w-8 sm:h-8 text-black fill-current ml-1" />
+              )}
+            </button>
+
+            <button
+              onClick={onNext}
+              className="p-2 text-white hover:text-purple-400 transition-colors"
+              title="Next"
+            >
+              <SkipForward className="w-6 h-6 sm:w-8 sm:h-8" />
+            </button>
+
+            <button
+              onClick={onToggleRepeat}
+              className={`p-2 transition-colors ${isRepeat !== "none" ? "text-purple-400" : "text-white/40 hover:text-white"
+                }`}
+            >
+              {isRepeat === "one" ? (
+                <Repeat1 className="w-5 h-5 sm:w-6 sm:h-6" />
+              ) : (
+                <Repeat className="w-5 h-5 sm:w-6 sm:h-6" />
+              )}
             </button>
           </div>
         </div>

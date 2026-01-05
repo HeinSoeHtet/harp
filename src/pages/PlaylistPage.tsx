@@ -109,108 +109,109 @@ export function PlaylistPage({
   };
 
   return (
-    <div className="bg-white/10 backdrop-blur-md rounded-2xl h-full flex flex-col relative overflow-hidden">
-      <div className="p-6 pb-2 flex-shrink-0 space-y-4">
-        <div className="flex items-center gap-3">
-          <Music className="w-6 h-6 text-white" />
-          <h2 className="text-white text-2xl font-bold">Playlist</h2>
-          <span className="ml-auto text-white/40 text-sm font-normal">
-            {filteredSongs.length} songs
-          </span>
+    <div className="h-full max-w-7xl mx-auto w-full">
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl h-full flex flex-col relative overflow-hidden">
+        <div className="p-6 pb-2 flex-shrink-0 space-y-4">
+          <div className="flex items-center gap-3">
+            <Music className="w-6 h-6 text-white" />
+            <h2 className="text-white text-2xl font-bold">Playlist</h2>
+            <span className="ml-auto text-white/40 text-sm font-normal">
+              {filteredSongs.length} songs
+            </span>
+          </div>
+
+          {/* Pill Buttons */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
+            <button
+              onClick={() => setSelectedPlaylistId("latest")}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${selectedPlaylistId === "latest"
+                ? "bg-white text-slate-900 shadow-lg"
+                : "bg-white/5 text-white/60 hover:bg-white/10"
+                }`}
+            >
+              Latest
+            </button>
+
+            {playlists.map(pl => (
+              <PlaylistPill
+                key={pl.id}
+                playlist={pl}
+                isSelected={selectedPlaylistId === pl.id}
+                onSelect={() => setSelectedPlaylistId(pl.id)}
+                onContextMenu={(e: any) => handleOpenPlaylistMenu(e, pl)}
+                onLongPress={(e: any) => {
+                  if (pl.id === "favorites") return;
+                  const touch = e.touches[0];
+                  setPlaylistMenu({ x: touch.clientX, y: touch.clientY, playlist: pl });
+                }}
+              />
+            ))}
+
+          </div>
         </div>
 
-        {/* Pill Buttons */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
-          <button
-            onClick={() => setSelectedPlaylistId("latest")}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${selectedPlaylistId === "latest"
-              ? "bg-white text-slate-900 shadow-lg"
-              : "bg-white/5 text-white/60 hover:bg-white/10"
-              }`}
-          >
-            Latest
-          </button>
+        <div className="flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide">
+          {filteredSongs.length === 0 ? (
+            <div className="text-center py-20 text-white/30">
+              <p>This playlist is empty.</p>
+            </div>
+          ) : (
+            <div className="space-y-2 pr-2">
+              {filteredSongs.map((song, index) => {
+                // Use the index within the context of the currently filtered view
+                const isActive = selectedPlaylistId === activePlaylistId && song.id === currentSongId;
 
-          {playlists.map(pl => (
-            <PlaylistPill
-              key={pl.id}
-              playlist={pl}
-              isSelected={selectedPlaylistId === pl.id}
-              onSelect={() => setSelectedPlaylistId(pl.id)}
-              onContextMenu={(e: any) => handleOpenPlaylistMenu(e, pl)}
-              onLongPress={(e: any) => {
-                if (pl.id === "favorites") return;
-                const touch = e.touches[0];
-                setPlaylistMenu({ x: touch.clientX, y: touch.clientY, playlist: pl });
-              }}
-            />
-          ))}
-
+                const originalIndex = songs.findIndex(s => s.id === song.id);
+                return (
+                  <PlaylistItem
+                    key={`${song.id}-${index}`}
+                    song={song}
+                    index={originalIndex}
+                    isActive={isActive}
+                    isPlaying={isPlaying}
+                    onSelect={() => onSelectSong(index, filteredSongs, selectedPlaylistId)}
+                    formatDuration={formatDuration}
+                    onContextMenu={(e: any, song: any) => {
+                      e.preventDefault();
+                      setContextMenu({ x: e.clientX, y: e.clientY, song });
+                    }}
+                    onLongPress={(e: any, song: any) => {
+                      const touch = e.touches[0];
+                      setContextMenu({ x: touch.clientX, y: touch.clientY, song });
+                    }}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
-      </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide">
-        {filteredSongs.length === 0 ? (
-          <div className="text-center py-20 text-white/30">
-            <p>This playlist is empty.</p>
-          </div>
-        ) : (
-          <div className="space-y-2 pr-2">
-            {filteredSongs.map((song, index) => {
-              // Use the index within the context of the currently filtered view
-              const isActive = selectedPlaylistId === activePlaylistId && song.id === currentSongId;
+        <SongContextMenu
+          position={contextMenu ? { x: contextMenu.x, y: contextMenu.y } : null}
+          onClose={handleCloseMenu}
+          onEdit={() => contextMenu && onEditSong(contextMenu.song)}
+          onDelete={() => contextMenu && onRequestDelete(contextMenu.song)}
+          onAddToPlaylist={() => contextMenu && onAddToPlaylist(contextMenu.song)}
+        />
 
-              const originalIndex = songs.findIndex(s => s.id === song.id);
-              return (
-                <PlaylistItem
-                  key={`${song.id}-${index}`}
-                  song={song}
-                  index={originalIndex}
-                  isActive={isActive}
-                  isPlaying={isPlaying}
-                  onSelect={() => onSelectSong(index, filteredSongs, selectedPlaylistId)}
-                  formatDuration={formatDuration}
-                  onContextMenu={(e: any, song: any) => {
-                    e.preventDefault();
-                    setContextMenu({ x: e.clientX, y: e.clientY, song });
-                  }}
-                  onLongPress={(e: any, song: any) => {
-                    const touch = e.touches[0];
-                    setContextMenu({ x: touch.clientX, y: touch.clientY, song });
-                  }}
-                />
-              );
-            })}
-          </div>
-        )}
-      </div>
+        <PlaylistContextMenu
+          position={playlistMenu ? { x: playlistMenu.x, y: playlistMenu.y } : null}
+          onClose={handleClosePlaylistMenu}
+          onDelete={() => handleDeletePlaylist(playlistMenu?.playlist)}
+        />
 
-      <SongContextMenu
-        position={contextMenu ? { x: contextMenu.x, y: contextMenu.y } : null}
-        onClose={handleCloseMenu}
-        onEdit={() => contextMenu && onEditSong(contextMenu.song)}
-        onDelete={() => contextMenu && onRequestDelete(contextMenu.song)}
-        onAddToPlaylist={() => contextMenu && onAddToPlaylist(contextMenu.song)}
-      />
+        <ConfirmDialog
+          isOpen={!!playlistToDelete}
+          title="Delete Playlist?"
+          message={`Are you sure you want to delete "${playlistToDelete?.name}"? This action cannot be undone.`}
+          confirmLabel="Delete"
+          isDanger={true}
+          isLoading={isDeletingPlaylist}
+          onConfirm={confirmDeletePlaylist}
+          onCancel={() => setPlaylistToDelete(null)}
+        />
 
-      <PlaylistContextMenu
-        position={playlistMenu ? { x: playlistMenu.x, y: playlistMenu.y } : null}
-        onClose={handleClosePlaylistMenu}
-        onDelete={() => handleDeletePlaylist(playlistMenu?.playlist)}
-      />
-
-      <ConfirmDialog
-        isOpen={!!playlistToDelete}
-        title="Delete Playlist?"
-        message={`Are you sure you want to delete "${playlistToDelete?.name}"? This action cannot be undone.`}
-        confirmLabel="Delete"
-        isDanger={true}
-        isLoading={isDeletingPlaylist}
-        onConfirm={confirmDeletePlaylist}
-        onCancel={() => setPlaylistToDelete(null)}
-      />
-
-      <style>{`
+        <style>{`
         .scrollbar-hide {
           scrollbar-width: none;
           -ms-overflow-style: none;
@@ -222,6 +223,7 @@ export function PlaylistPage({
           display: none;
         }
       `}</style>
+      </div>
     </div>
   );
 }

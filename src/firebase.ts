@@ -28,13 +28,32 @@ export const functions = getFunctions(app);
 
 import { Capacitor } from "@capacitor/core";
 import { FirebaseAppCheck } from "@capacitor-firebase/app-check";
+import { CustomProvider } from "firebase/app-check";
 
 if (Capacitor.isNativePlatform()) {
+  // 1. Initialize Native Plugin (for Play Integrity/Debug)
   FirebaseAppCheck.initialize({
     debugToken: import.meta.env.VITE_ANDROID_APP_CHECK_DEBUG_TOKEN,
     isTokenAutoRefreshEnabled: true,
   });
+
+  // 2. Link JS SDK to Native Plugin
+  const provider = new CustomProvider({
+    getToken: async () => {
+      const result = await FirebaseAppCheck.getToken();
+      return {
+        token: result.token,
+        expireTimeMillis: result.expireTimeMillis || Date.now() + 3600000,
+      };
+    },
+  });
+
+  initializeAppCheck(app, {
+    provider,
+    isTokenAutoRefreshEnabled: true,
+  });
 } else {
+  // Web Path
   if (!import.meta.env.PROD) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = import.meta.env.VITE_WEB_APP_CHECK_DEBUG_TOKEN;

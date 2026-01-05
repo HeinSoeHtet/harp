@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Harp</string>
+    <string name="title_activity_main">Harp</string>
+    <string name="package_name">com.solodev.harp</string>
+    <string name="custom_url_scheme">com.solodev.harp</string>
+</resources>

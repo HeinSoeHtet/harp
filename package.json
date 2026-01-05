@@ -10,9 +10,14 @@
     "preview": "vite preview",
     "deploy:web": "yarn build && firebase deploy --only hosting",
     "deploy:api": "firebase deploy --only functions",
-    "deploy:all": "yarn build && firebase deploy"
+    "deploy:all": "yarn build && firebase deploy",
+    "cap:build": "yarn build && npx cap sync",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android",
+    "cap:open:ios": "npx cap open ios"
   },
   "dependencies": {
+    "@capacitor/core": "^8.0.0",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
     "@tailwindcss/vite": "^4.1.18",
@@ -29,6 +34,9 @@
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
     "@eslint/js": "^9.39.1",
     "@types/node": "^25.0.3",
     "@types/react": "^19.2.5",

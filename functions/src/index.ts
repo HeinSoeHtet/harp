@@ -66,11 +66,18 @@ interface SaveDriveTokenData {
 }
 
 export const saveDriveToken = onCall(
-    { cors: !isEmulator, enforceAppCheck: !isEmulator },
+    { cors: !isEmulator, enforceAppCheck: false },
     async (request: CallableRequest<SaveDriveTokenData>): Promise<SaveDriveTokenResponse> => {
+        logger.info("saveDriveToken check:", {
+            hasAuth: !!request.auth,
+            uid: request.auth?.uid,
+            hasAppCheck: !!request.app,
+        });
+
         const auth = isEmulator ? await getAuthenticatedUser(request) : request.auth;
 
         if (!auth) {
+            logger.warn("Request rejected: Unauthenticated");
             throw new HttpsError("unauthenticated", "User must be logged in.");
         }
 
@@ -115,12 +122,19 @@ export const saveDriveToken = onCall(
 );
 
 export const getDriveToken = onCall(
-    { cors: !isEmulator, enforceAppCheck: !isEmulator },
+    { cors: !isEmulator, enforceAppCheck: false },
     async (request: CallableRequest<void>): Promise<GetDriveTokenResponse> => {
+        logger.info("getDriveToken check:", {
+            hasAuth: !!request.auth,
+            uid: request.auth?.uid,
+            hasAppCheck: !!request.app,
+        });
+
         const auth = isEmulator ? await getAuthenticatedUser(request) : request.auth;
 
         // 1. Security Check
         if (!auth) {
+            logger.warn("Request rejected: Unauthenticated");
             throw new HttpsError("unauthenticated", "User must be logged in.");
         }
 
@@ -179,7 +193,7 @@ export const transcribeSong = onCall(
         timeoutSeconds: 300,
         memory: "512MiB",    // Optimized for ~5MB files
         cors: !isEmulator,          // Allow client calls
-        enforceAppCheck: !isEmulator,
+        enforceAppCheck: false,
     },
     async (request) => {
         const auth = isEmulator ? await getAuthenticatedUser(request) : request.auth;

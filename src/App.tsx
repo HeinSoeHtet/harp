@@ -19,6 +19,7 @@ import { SideNav } from "./layouts/SideNav";
 import { ConverterPage } from "./pages/ConverterPage";
 import { PlayerBar } from "./components/PlayerBar";
 import { FullPlayer } from "./components/FullPlayer";
+import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import { EditSongDialog } from "./components/EditSongDialog";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 
@@ -662,6 +663,8 @@ const AppContent = () => {
           </div>
         </>
       )}
+
+      <PWAInstallPrompt />
 
       {/* Hidden Audio Element */}
       <audio

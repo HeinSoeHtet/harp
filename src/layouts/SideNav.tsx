@@ -60,7 +60,7 @@ export function SideNav({ onDisconnect, onSync, user }: SideNavProps) {
           <div className="w-8 h-8">
             <img src="/logo.webp" alt="Harp Logo" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-sm text-white font-bold tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">Harp</h1>
+          <h1 className="text-xl text-white font-bold tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">Harp</h1>
         </div>
       </div>
 

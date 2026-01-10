@@ -19,7 +19,7 @@ export function HomePage() {
                         <div className="w-10 h-10 overflow-hidden">
                             <img src="/logo.webp" alt="Harp Logo" className="w-full h-full object-contain" />
                         </div>
-                        <span className="text-white text-xl font-bold tracking-tight">harp</span>
+                        <span className="text-white text-xl font-bold tracking-tight">Harp</span>
                     </div>
                     <button
                         onClick={() => navigate("/connect")}
@@ -97,7 +97,7 @@ export function HomePage() {
                             <div className="w-6 h-6 overflow-hidden grayscale opacity-50">
                                 <img src="/logo.webp" alt="Harp Logo" className="w-full h-full object-contain" />
                             </div>
-                            <span className="text-white/40 text-sm font-bold tracking-tight">harp</span>
+                            <span className="text-white/40 text-sm font-bold tracking-tight">Harp</span>
                         </div>
                         <div className="flex gap-8">
                             <Link to="/privacy" className="text-white/40 hover:text-white transition-colors text-sm">Privacy Policy</Link>

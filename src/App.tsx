@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { type User } from "firebase/auth";
 import { Loader2, CheckCircle2 } from "lucide-react";
 
@@ -47,6 +47,7 @@ import { DriveProvider, useDrive } from "./context/DriveContext";
 
 const AppContent = () => {
   const toast = useToast();
+  const navigate = useNavigate();
   const { user, driveToken, isAuthLoading, login, logout, refreshSession } = useDrive();
 
   const [songs, setSongs] = useState<Song[]>([]);
@@ -331,6 +332,7 @@ const AppContent = () => {
     setSongs([]);
     setShowPlayer(false);
     await logout();
+    navigate("/connect");
   };
 
   const togglePlay = () => {

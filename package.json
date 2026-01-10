@@ -17,7 +17,6 @@
     "cap:open:ios": "npx cap open ios"
   },
   "dependencies": {
-    "@capacitor-firebase/app-check": "^8.0.1",
     "@capacitor/core": "^8.0.0",
     "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "@ffmpeg/ffmpeg": "^0.12.15",

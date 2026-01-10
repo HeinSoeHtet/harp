@@ -150,7 +150,7 @@ export function ConverterPage() {
                         <RefreshCw className={`w-7 h-7 text-purple-400 ${isConverting ? 'animate-spin' : ''}`} />
                     </div>
                     <div>
-                        <h1 className="text-white text-3xl font-bold tracking-tight">Audio Converter</h1>
+                        <h1 className="text-white text-2xl font-bold tracking-tight">Audio Converter</h1>
                         <p className="text-white/40 text-sm">Convert Video or Audio to MP3</p>
                     </div>
                 </div>

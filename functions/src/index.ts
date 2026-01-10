@@ -3,12 +3,14 @@ import { onCall, HttpsError, CallableRequest } from "firebase-functions/v2/https
 import * as logger from "firebase-functions/logger";
 import OpenAI from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import * as admin from "firebase-admin";
+import { initializeApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { google } from "googleapis";
-import { FieldValue } from "firebase-admin/firestore";
 
 
-admin.initializeApp();
+initializeApp();
+
 
 // Set global options (Max instances prevents run-away costs)
 setGlobalOptions({ maxInstances: 10 });
@@ -26,7 +28,7 @@ async function getAuthenticatedUser(request: CallableRequest<any>) {
         if (authHeader && authHeader.startsWith("Bearer ")) {
             const idToken = authHeader.split("Bearer ")[1];
             try {
-                const decodedToken = await admin.auth().verifyIdToken(idToken);
+                const decodedToken = await getAuth().verifyIdToken(idToken);
                 return {
                     uid: decodedToken.uid,
                     token: decodedToken as any
@@ -90,7 +92,7 @@ export const saveDriveToken = onCall(
 
             // 2. If we got a Refresh Token (Permanent), save it.
             if (tokens.refresh_token) {
-                await admin.firestore()
+                await getFirestore()
                     .collection("user_secrets")
                     .doc(auth.uid)
                     .set({
@@ -136,7 +138,7 @@ export const getDriveToken = onCall(
 
         try {
             // 2. Read from root collection 'user_secrets' -> doc(UID)
-            const docSnap = await admin.firestore()
+            const docSnap = await getFirestore()
                 .collection("user_secrets")
                 .doc(auth.uid)
                 .get();
@@ -171,7 +173,7 @@ export const getDriveToken = onCall(
 
             // Auto-cleanup: If token is invalid (revoked), delete it so client knows to re-auth
             if (error.message && error.message.includes("invalid_grant")) {
-                await admin.firestore()
+                await getFirestore()
                     .collection("user_secrets")
                     .doc(auth.uid)
                     .delete();
@@ -214,9 +216,9 @@ export const transcribeSong = onCall(
         }
 
         // --- Rate Limiting Check (10 calls/user, daily refresh) ---
-        const usageRef = admin.firestore().collection("user_usage").doc(auth.uid);
+        const usageRef = getFirestore().collection("user_usage").doc(auth.uid);
 
-        await admin.firestore().runTransaction(async (transaction) => {
+        await getFirestore().runTransaction(async (transaction) => {
             const usageDoc = await transaction.get(usageRef);
             const data = usageDoc.data();
 

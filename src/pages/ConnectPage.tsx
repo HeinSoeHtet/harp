@@ -4,9 +4,6 @@ import { useState } from "react";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider, functions } from "../firebase";
 import { httpsCallable } from "firebase/functions";
-import { Capacitor } from "@capacitor/core";
-import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
-import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 
 interface ConnectPageProps {
   onConnect: (accessToken: string, user: any) => void;
@@ -30,20 +27,6 @@ export function ConnectPage({ onConnect, currentUser }: ConnectPageProps) {
   const handleLogin = async () => {
     setError("");
 
-    if (Capacitor.isNativePlatform()) {
-      setIsLoading(true);
-      try {
-        const result = await GoogleAuth.signIn();
-        const credential = GoogleAuthProvider.credential(result.authentication.idToken);
-        await signInWithCredential(auth, credential);
-      } catch (err) {
-        console.error("Native Login Error:", err);
-        setError("Login failed. Please check your connection.");
-      } finally {
-        setIsLoading(false);
-      }
-      return;
-    }
 
     // Web Platform
     try {
@@ -66,35 +49,6 @@ export function ConnectPage({ onConnect, currentUser }: ConnectPageProps) {
     if (!currentUser) return;
     setError("");
 
-    if (Capacitor.isNativePlatform()) {
-      setIsLoading(true);
-      GoogleAuth.signIn().then(async (result) => {
-        const authCode = result.serverAuthCode;
-        if (authCode) {
-          try {
-            const saveTokenFn = httpsCallable<{ code: string }, { success: boolean, accessToken: string }>(functions, 'saveDriveToken');
-            const exchangeResult = await saveTokenFn({ code: authCode });
-
-            if (exchangeResult.data.success && exchangeResult.data.accessToken) {
-              onConnect(exchangeResult.data.accessToken, currentUser);
-            } else {
-              setError("Server failed to exchange tokens.");
-            }
-          } catch (funcErr: any) {
-            console.error("Cloud Function Error:", funcErr);
-            setError(`Server Error: ${funcErr.message || "Failed to exchange tokens"}`);
-          }
-        } else {
-          setError("Google did not return an authorization code.");
-        }
-      }).catch(err => {
-        console.error("Native Google Login (Drive) Error:", err);
-        setError(`Native Auth Error: ${err.message || "Could not get authorization code"}`);
-      }).finally(() => {
-        setIsLoading(false);
-      });
-      return;
-    }
 
     // Web Platform - Google Identity Services
     try {

@@ -1,8 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">Harp</string>
-    <string name="title_activity_main">Harp</string>
-    <string name="package_name">com.solodev.harp</string>
-    <string name="custom_url_scheme">com.solodev.harp</string>
-    <string name="server_client_id">169295320802-n5k041v3dcl8b2196o2ch1esd5lla1ij.apps.googleusercontent.com</string>
-</resources>

@@ -68,10 +68,6 @@ interface SaveDriveTokenData {
 export const saveDriveToken = onCall(
     { cors: !isEmulator },
     async (request: CallableRequest<SaveDriveTokenData>): Promise<SaveDriveTokenResponse> => {
-        logger.info("saveDriveToken check:", {
-            hasAuth: !!request.auth,
-            uid: request.auth?.uid,
-        });
 
         const auth = isEmulator ? await getAuthenticatedUser(request) : request.auth;
 
@@ -123,10 +119,6 @@ export const saveDriveToken = onCall(
 export const getDriveToken = onCall(
     { cors: !isEmulator },
     async (request: CallableRequest<void>): Promise<GetDriveTokenResponse> => {
-        logger.info("getDriveToken check:", {
-            hasAuth: !!request.auth,
-            uid: request.auth?.uid,
-        });
 
         const auth = isEmulator ? await getAuthenticatedUser(request) : request.auth;
 

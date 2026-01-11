@@ -106,13 +106,17 @@ const AppContent = () => {
           console.log("Background sync completed");
           loadLibrary();
         })
-        .catch(console.error);
+        .catch((e) => {
+          console.error("Background sync failed:", e);
+          toast.error("Library sync failed. Please reconnect.");
+          navigate("/connect");
+        });
       loadLibrary();
     } else if (user) {
       // Offline mode or just logged in user without token yet
       loadLibrary();
     }
-  }, [user, driveToken, loadLibrary]);
+  }, [user, driveToken, loadLibrary, navigate]);
 
   // Handle Session Expiry (401 from Drive API)
   useEffect(() => {
@@ -498,7 +502,6 @@ const AppContent = () => {
         </div>
       )}
 
-      {/* Session Expired Modal */}
       {/* Session Expired Modal */}
       {isSessionExpired && createPortal(
         <div className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">

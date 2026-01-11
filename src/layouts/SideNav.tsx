@@ -94,7 +94,7 @@ export function SideNav({ onDisconnect, onSync, user }: SideNavProps) {
           </div>
 
           {/* User Profile */}
-          <div className="mb-8 pb-6">
+          <div className="md:mb-4 mt-3 md:mt-0 pb-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden border border-white/20">
                 {user?.photoURL ? (

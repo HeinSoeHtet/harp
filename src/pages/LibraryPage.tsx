@@ -22,9 +22,6 @@ interface LibraryPageProps {
   onRequestDelete: (song: Song) => void;
   onEditSong: (song: Song) => void;
   onAddToPlaylist: (song: Song) => void;
-  onSelectSong: (index: number, queue?: Song[], queueId?: string) => void;
-  currentSongId?: string;
-  isPlaying?: boolean;
 }
 
 export function LibraryPage({
@@ -33,9 +30,6 @@ export function LibraryPage({
   onRequestDelete,
   onEditSong,
   onAddToPlaylist,
-  onSelectSong,
-  currentSongId,
-  isPlaying: isGlobalPlaying
 }: LibraryPageProps) {
   const [activeTab, setActiveTab] = useState<"artists" | "albums">("artists");
   const [selectedEntity, setSelectedEntity] = useState<{ type: "artist" | "album"; name: string } | null>(null);
@@ -138,32 +132,20 @@ export function LibraryPage({
                 <div className="space-y-1">
                   {songs
                     .filter(s => selectedEntity.type === "artist" ? s.artist === selectedEntity.name : s.album === selectedEntity.name)
-                    .map((song, index, filteredArr) => (
+                    .map((song) => (
                       <div
                         key={song.id}
-                        onClick={() => onSelectSong(index, filteredArr, `${selectedEntity.type}:${selectedEntity.name}`)}
                         onContextMenu={(e) => {
                           e.preventDefault();
                           setContextMenu({ x: e.clientX, y: e.clientY, song });
                         }}
-                        className={`group flex items-center gap-4 p-3 rounded-xl transition-colors cursor-default select-none border ${song.id === currentSongId
-                          ? "bg-white/20 border-white/30"
-                          : "hover:bg-white/5 border-transparent hover:border-white/5 shadow-sm"
-                          }`}
+                        className="group flex items-center gap-4 p-3 rounded-xl transition-colors cursor-default select-none border hover:bg-white/5 border-transparent hover:border-white/5 shadow-sm"
                       >
                         <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-white/20">
-                          {song.id === currentSongId && isGlobalPlaying ? (
-                            <div className="flex gap-0.5">
-                              <div className="w-0.5 h-3 bg-purple-400 animate-pulse" />
-                              <div className="w-0.5 h-4 bg-purple-400 animate-pulse delay-75" />
-                              <div className="w-0.5 h-2 bg-purple-400 animate-pulse delay-150" />
-                            </div>
-                          ) : (
-                            <Music className="w-5 h-5 text-white/40" />
-                          )}
+                          <Music className="w-5 h-5 text-white/40" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className={`font-medium truncate ${song.id === currentSongId ? "text-purple-400" : "text-white"}`}>{song.title}</div>
+                          <div className="font-medium truncate text-white">{song.title}</div>
                           <div className="text-white/40 text-sm truncate">{song.artist}</div>
                         </div>
                         <div className="text-white/30 text-sm opacity-0 group-hover:opacity-100 transition-opacity">

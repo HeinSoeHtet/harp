@@ -588,9 +588,6 @@ const AppContent = () => {
                     onRequestDelete={setSongToDelete}
                     onEditSong={setEditingSong}
                     onAddToPlaylist={setSongToAddToPlaylist}
-                    onSelectSong={(idx: number, q?: Song[], qId?: string) => { playSong(idx, q, qId) }}
-                    currentSongId={currentSong?.id}
-                    isPlaying={isPlaying}
                   />
                 )
               } />

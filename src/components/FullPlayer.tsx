@@ -89,9 +89,17 @@ export function FullPlayer({
   const [isSearching, setIsSearching] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showAIDialog, setShowAIDialog] = useState(false);
+  const [isSeeking, setIsSeeking] = useState(false);
+  const [seekValue, setSeekValue] = useState(0);
+
+  // Sync seekValue with currentTime when not seeking
+  useEffect(() => {
+    if (!isSeeking) {
+      setSeekValue(currentTime);
+    }
+  }, [currentTime, isSeeking]);
 
   const activeLyricRef = useRef<HTMLDivElement>(null);
-  const progressRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
 
   const [isVolumeOpen, setIsVolumeOpen] = useState(false);
@@ -248,15 +256,6 @@ export function FullPlayer({
       });
     }
   }, [activeLyricIndex, showLyrics]);
-
-  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (progressRef.current && duration > 0) {
-      const rect = progressRef.current.getBoundingClientRect();
-      const percent = (e.clientX - rect.left) / rect.width;
-      const newTime = percent * duration;
-      onSeek(newTime);
-    }
-  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -483,19 +482,35 @@ export function FullPlayer({
           {/* Progress */}
           <div>
             <div
-              ref={progressRef}
-              className="h-2 bg-white/10 rounded-full cursor-pointer group"
-              onClick={handleProgressClick}
+              className="h-2 bg-white/10 rounded-full cursor-pointer group relative"
             >
               <div
                 className="h-full bg-white rounded-full relative"
-                style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
+                style={{ width: `${(seekValue / (duration || 1)) * 100}%` }}
               >
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className={`absolute right-[-8px] top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-lg transition-all ${isSeeking ? 'scale-110 opacity-100' : 'opacity-0 group-hover:opacity-100 scale-100'}`} />
               </div>
+              <input
+                type="range"
+                min="0"
+                max={duration || 100}
+                value={seekValue}
+                onMouseDown={() => setIsSeeking(true)}
+                onTouchStart={() => setIsSeeking(true)}
+                onMouseUp={() => {
+                  setIsSeeking(false);
+                  onSeek(seekValue);
+                }}
+                onTouchEnd={() => {
+                  setIsSeeking(false);
+                  onSeek(seekValue);
+                }}
+                onChange={(e) => setSeekValue(Number(e.target.value))}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              />
             </div>
             <div className="flex justify-between mt-2 text-xs font-medium text-white/40">
-              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(isSeeking ? seekValue : currentTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
           </div>

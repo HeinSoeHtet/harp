@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import type { Song } from "../services/libraryServices";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 interface PlayerBarProps {
   currentSong?: Song;
@@ -45,6 +45,15 @@ export function PlayerBar({
   onExpand,
   onClose,
 }: PlayerBarProps) {
+  const [isSeeking, setIsSeeking] = useState(false);
+  const [seekValue, setSeekValue] = useState(0);
+
+  // Sync seekValue with currentTime when not seeking
+  useEffect(() => {
+    if (!isSeeking) {
+      setSeekValue(currentTime);
+    }
+  }, [currentTime, isSeeking]);
   const coverUrl = useMemo(() => {
     if (currentSong?.imageBlob) {
       return URL.createObjectURL(currentSong.imageBlob);
@@ -60,11 +69,10 @@ export function PlayerBar({
   };
 
   const duration = currentSong?.duration || 0;
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <div
-      className="relative h-auto min-h-24 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 flex items-center px-4 md:px-12 w-full z-40 cursor-pointer md:cursor-default py-4 md:py-0 overflow-hidden"
+      className="relative h-auto min-h-24 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 flex items-center px-4 md:px-12 w-full z-[60] cursor-pointer md:cursor-default py-4 md:py-0"
       onClick={(e) => {
         if (
           window.innerWidth < 768 &&
@@ -76,17 +84,30 @@ export function PlayerBar({
       }}
     >
       {/* Mobile Progress Bar at Top Edge */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-white/10 md:hidden">
+      <div className="absolute top-[-2px] left-0 right-0 h-1 bg-white/10 md:hidden z-[70]">
         <div
-          className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300 relative shadow-[0_0_10px_rgba(168,85,247,0.5)]"
-          style={{ width: `${progress}%` }}
-        />
+          className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-150 relative shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+          style={{ width: `${duration > 0 ? (seekValue / duration) * 100 : 0}%` }}
+        >
+          {/* Mobile Thumb Dot */}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full shadow-lg" />
+        </div>
         <input
           type="range"
           min="0"
           max={duration || 100}
-          value={currentTime}
-          onChange={(e) => onSeek(Number(e.target.value))}
+          value={seekValue}
+          onMouseDown={() => setIsSeeking(true)}
+          onTouchStart={() => setIsSeeking(true)}
+          onMouseUp={() => {
+            setIsSeeking(false);
+            onSeek(seekValue);
+          }}
+          onTouchEnd={() => {
+            setIsSeeking(false);
+            onSeek(seekValue);
+          }}
+          onChange={(e) => setSeekValue(Number(e.target.value))}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
           disabled={!currentSong}
         />
@@ -178,18 +199,31 @@ export function PlayerBar({
         </div>
 
         <div className="w-full max-w-md flex items-center gap-3 text-xs font-medium text-white/30">
-          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(seekValue)}</span>
           <div className="flex-1 h-1 bg-white/10 rounded-full relative group cursor-pointer">
             <div
-              className="absolute top-0 left-0 h-full bg-white rounded-full group-hover:bg-purple-400 transition-colors"
-              style={{ width: `${progress}%` }}
-            />
+              className="absolute top-0 left-0 h-full bg-white rounded-full group-hover:bg-purple-400 transition-colors relative"
+              style={{ width: `${duration > 0 ? (seekValue / duration) * 100 : 0}%` }}
+            >
+              {/* Desktop Thumb Dot */}
+              <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md scale-0 group-hover:scale-100 transition-transform border border-purple-200" />
+            </div>
             <input
               type="range"
               min="0"
               max={duration || 100}
-              value={currentTime}
-              onChange={(e) => onSeek(Number(e.target.value))}
+              value={seekValue}
+              onMouseDown={() => setIsSeeking(true)}
+              onTouchStart={() => setIsSeeking(true)}
+              onMouseUp={() => {
+                setIsSeeking(false);
+                onSeek(seekValue);
+              }}
+              onTouchEnd={() => {
+                setIsSeeking(false);
+                onSeek(seekValue);
+              }}
+              onChange={(e) => setSeekValue(Number(e.target.value))}
               className="absolute inset-0 w-full opacity-0 cursor-pointer"
               disabled={!currentSong}
             />

@@ -20,7 +20,7 @@ graph TD
     Client <--> Firestore
     Functions <--> Drive
     Functions <--> AI
-    Client <--> Drive (via Token)
+    Client <-->|via Token| Drive
 ```
 
 ## 2. Music Management Workflow
@@ -73,7 +73,7 @@ Harp uses **FFmpeg.wasm** for client-side audio conversion. This allows users to
   3. Execute conversion command.
   4. Read output file and return to user.
 
-## 5. Security Model
+## 6. Security Model
 
 - **Authentication:** Firebase Auth handles user identity.
 - **Data Security:** Firestore rules ensure users can only read/write their own data.

@@ -8,6 +8,7 @@ import { PlaylistContextMenu } from "../components/PlaylistContextMenu";
 interface PlaylistPageProps {
   accessToken: string | null;
   songs: Song[];
+  playlists: any[];
   currentSongId?: string;
   activePlaylistId: string;
   onSelectSong: (index: number, queue?: Song[], queueId?: string) => void;
@@ -15,12 +16,13 @@ interface PlaylistPageProps {
   onRequestDelete: (song: Song) => void;
   onEditSong: (song: Song) => void;
   onAddToPlaylist: (song: Song) => void;
-  refreshTrigger?: number;
+  onRefresh: () => Promise<void>;
 }
 
 export function PlaylistPage({
   accessToken,
   songs,
+  playlists,
   currentSongId,
   activePlaylistId,
   onSelectSong,
@@ -28,10 +30,9 @@ export function PlaylistPage({
   onRequestDelete,
   onEditSong,
   onAddToPlaylist,
-  refreshTrigger = 0
+  onRefresh,
 }: PlaylistPageProps) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; song: Song } | null>(null);
-  const [playlists, setPlaylists] = useState<any[]>([]);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>(activePlaylistId || "latest");
   const [playlistToDelete, setPlaylistToDelete] = useState<any | null>(null);
   const [isDeletingPlaylist, setIsDeletingPlaylist] = useState(false);
@@ -49,19 +50,6 @@ export function PlaylistPage({
       setSelectedPlaylistId(activePlaylistId);
     }
   }, [activePlaylistId]);
-
-  useEffect(() => {
-    loadPlaylists();
-  }, [accessToken, refreshTrigger]);
-
-  const loadPlaylists = async () => {
-    try {
-      const plData = await LibraryServices.getPlaylists();
-      setPlaylists(Object.values(plData));
-    } catch (e) {
-      console.error("Failed to load playlists", e);
-    }
-  };
 
   const filteredSongs = useMemo(() => {
     if (selectedPlaylistId === "latest") {
@@ -96,7 +84,7 @@ export function PlaylistPage({
     setIsDeletingPlaylist(true);
     try {
       await LibraryServices.deletePlaylist(accessToken, playlistToDelete.id);
-      await loadPlaylists();
+      await onRefresh();
       if (selectedPlaylistId === playlistToDelete.id) {
         setSelectedPlaylistId("latest");
       }

@@ -51,6 +51,8 @@ const AppContent = () => {
   const { user, driveToken, isAuthLoading, login, logout, refreshSession } = useDrive();
 
   const [songs, setSongs] = useState<Song[]>([]);
+  const [playlists, setPlaylists] = useState<any[]>([]);
+  const [isLibraryLoading, setIsLibraryLoading] = useState(true);
   const [playbackQueue, setPlaybackQueue] = useState<Song[]>([]);
   const [activeQueueId, setActiveQueueId] = useState<string>("latest");
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
@@ -76,12 +78,6 @@ const AppContent = () => {
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [songToAddToPlaylist, setSongToAddToPlaylist] = useState<Song | null>(null);
 
-  // Refresh trigger for routes (Library/Playlist)
-  const [routeRefreshTrigger, setRouteRefreshTrigger] = useState(0);
-
-  const handleRouteRefresh = () => {
-    setRouteRefreshTrigger(prev => prev + 1);
-  };
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const currentSong = playbackQueue[currentSongIndex];
@@ -89,12 +85,20 @@ const AppContent = () => {
 
   const loadLibrary = useCallback(async () => {
     try {
-      const localSongs = await LibraryServices.getLocalSongs();
+      setIsLibraryLoading(true);
+      const [localSongs, plData] = await Promise.all([
+        LibraryServices.getLocalSongs(),
+        LibraryServices.getPlaylists()
+      ]);
+
       const sorted = localSongs.sort((a, b) => b.addedAt - a.addedAt);
       setSongs(sorted);
+      setPlaylists(Object.values(plData));
       setPlaybackQueue(prev => prev.length === 0 ? sorted : prev);
     } catch (e) {
       console.error("Failed to load library:", e);
+    } finally {
+      setIsLibraryLoading(false);
     }
   }, []);
 
@@ -105,7 +109,6 @@ const AppContent = () => {
         .then(() => {
           console.log("Background sync completed");
           loadLibrary();
-          handleRouteRefresh();
         })
         .catch((e) => {
           console.error("Background sync failed:", e);
@@ -326,7 +329,6 @@ const AppContent = () => {
       .then(() => {
         console.log("Login sync completed");
         loadLibrary();
-        handleRouteRefresh();
       })
       .catch((e) => {
         console.error("Login sync failed", e);
@@ -403,7 +405,6 @@ const AppContent = () => {
         console.log("Manual sync completed.");
         // Reload to show updates
         await loadLibrary();
-        handleRouteRefresh();
         setSyncStatus("completed");
         toast.success("Library synced successfully!");
         setTimeout(() => setSyncStatus("idle"), 2000); // Show success for 2s
@@ -434,7 +435,6 @@ const AppContent = () => {
       }
 
       await loadLibrary();
-      handleRouteRefresh();
       setSongToDelete(null);
       toast.success("Song deleted successfully.");
     } catch (e) {
@@ -453,7 +453,6 @@ const AppContent = () => {
         artist: newArtist,
       }, true);
       await loadLibrary();
-      handleRouteRefresh();
       setEditingSong(null);
       toast.success("Song updated successfully!");
     } catch (e) {
@@ -589,11 +588,15 @@ const AppContent = () => {
                 !user || !driveToken ? <Navigate to="/connect" replace /> : (
                   <LibraryPage
                     accessToken={driveToken}
-                    onSongAdded={(newSong) => setSongs([newSong, ...songs])}
+                    songs={songs}
+                    isLoading={isLibraryLoading}
+                    onSongAdded={(newSong) => {
+                      setSongs(prev => [newSong, ...prev]);
+                    }}
                     onRequestDelete={setSongToDelete}
                     onEditSong={setEditingSong}
                     onAddToPlaylist={setSongToAddToPlaylist}
-                    refreshTrigger={routeRefreshTrigger}
+                    onRefresh={loadLibrary}
                   />
                 )
               } />
@@ -602,6 +605,7 @@ const AppContent = () => {
                   <PlaylistPage
                     accessToken={driveToken}
                     songs={songs}
+                    playlists={playlists}
                     currentSongId={currentSong?.id}
                     activePlaylistId={activeQueueId}
                     onSelectSong={(idx: number, q?: Song[], qId?: string) => { playSong(idx, q, qId) }}
@@ -609,7 +613,7 @@ const AppContent = () => {
                     onRequestDelete={setSongToDelete}
                     onEditSong={setEditingSong}
                     onAddToPlaylist={setSongToAddToPlaylist}
-                    refreshTrigger={routeRefreshTrigger}
+                    onRefresh={loadLibrary}
                   />
                 )
               } />
@@ -691,7 +695,7 @@ const AppContent = () => {
         isOpen={!!songToAddToPlaylist}
         onClose={() => setSongToAddToPlaylist(null)}
         accessToken={driveToken}
-        onPlaylistUpdated={handleRouteRefresh}
+        onPlaylistUpdated={loadLibrary}
       />
     </div >
   );

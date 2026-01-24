@@ -1,4 +1,3 @@
-// ... (Imports remain the same)
 import {
   Music,
   User,
@@ -7,8 +6,8 @@ import {
   Loader2,
   ChevronLeft,
 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { LibraryServices, type Song } from "../services/libraryServices";
+import { useState } from "react";
+import { type Song } from "../services/libraryServices";
 import { SongContextMenu } from "../components/SongContextMenu";
 import { UploadSongDialog } from "../components/UploadSongDialog";
 
@@ -18,53 +17,29 @@ import { UploadSongDialog } from "../components/UploadSongDialog";
 
 interface LibraryPageProps {
   accessToken: string | null;
+  songs: Song[];
+  isLoading: boolean;
   onSongAdded?: (song: Song) => void;
   onRequestDelete: (song: Song) => void;
   onEditSong: (song: Song) => void;
   onAddToPlaylist: (song: Song) => void;
-  refreshTrigger?: number;
+  onRefresh: () => Promise<void>;
 }
 
 export function LibraryPage({
   accessToken,
+  songs,
+  isLoading,
   onSongAdded,
   onRequestDelete,
   onEditSong,
   onAddToPlaylist,
-  refreshTrigger = 0,
+  onRefresh,
 }: LibraryPageProps) {
   const [activeTab, setActiveTab] = useState<"artists" | "albums">("artists");
   const [selectedEntity, setSelectedEntity] = useState<{ type: "artist" | "album"; name: string } | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; song: Song } | null>(null);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const [songs, setSongs] = useState<Song[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRestoring, setIsRestoring] = useState(false); // New state for restore UI
-
-  useEffect(() => {
-    loadLibrary();
-  }, [accessToken, refreshTrigger]); // Re-run if token becomes available or refresh triggered
-
-  const loadLibrary = async () => {
-    setIsLoading(true);
-    try {
-      const localSongs = await LibraryServices.getLocalSongs();
-
-      /* Auto-restore removed: Sync happens only on login or manual trigger */
-
-      setSongs(localSongs.sort((a, b) => b.addedAt - a.addedAt));
-    } catch (e) {
-      console.error("Failed to load library", e);
-    } finally {
-      setIsLoading(false);
-      setIsRestoring(false);
-    }
-  };
-
-  const handleSongAdded = (newSong: Song) => {
-    setSongs((prev) => [newSong, ...prev]);
-    if (onSongAdded) onSongAdded(newSong);
-  };
 
   const handleCloseMenu = () => setContextMenu(null);
 
@@ -184,14 +159,10 @@ export function LibraryPage({
               </div>
 
               <div className="flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide">
-                {isLoading || isRestoring ? (
+                {isLoading ? (
                   <div className="flex flex-col items-center justify-center h-60 text-white/50 gap-4">
                     <Loader2 className="w-10 h-10 animate-spin text-purple-400" />
-                    <p>
-                      {isRestoring
-                        ? "Restoring library from Drive..."
-                        : "Loading..."}
-                    </p>
+                    <p>Loading...</p>
                   </div>
                 ) : songs.length === 0 ? (
                   <div className="text-center py-20 text-white/30">
@@ -237,7 +208,10 @@ export function LibraryPage({
         <UploadSongDialog
           onClose={() => setShowUploadDialog(false)}
           driveToken={accessToken}
-          onSuccess={handleSongAdded}
+          onSuccess={(s) => {
+            if (onSongAdded) onSongAdded(s);
+            onRefresh().catch(console.error);
+          }}
         />
       )}
       <style>{`.scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; } .scrollbar-hide::-webkit-scrollbar { display: none; }`}</style>

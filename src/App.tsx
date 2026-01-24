@@ -76,11 +76,11 @@ const AppContent = () => {
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [songToAddToPlaylist, setSongToAddToPlaylist] = useState<Song | null>(null);
 
-  // Refresh trigger for playlists
-  const [playlistUpdateTrigger, setPlaylistUpdateTrigger] = useState(0);
+  // Refresh trigger for routes (Library/Playlist)
+  const [routeRefreshTrigger, setRouteRefreshTrigger] = useState(0);
 
-  const handlePlaylistUpdate = () => {
-    setPlaylistUpdateTrigger(prev => prev + 1);
+  const handleRouteRefresh = () => {
+    setRouteRefreshTrigger(prev => prev + 1);
   };
 
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -105,6 +105,7 @@ const AppContent = () => {
         .then(() => {
           console.log("Background sync completed");
           loadLibrary();
+          handleRouteRefresh();
         })
         .catch((e) => {
           console.error("Background sync failed:", e);
@@ -325,6 +326,7 @@ const AppContent = () => {
       .then(() => {
         console.log("Login sync completed");
         loadLibrary();
+        handleRouteRefresh();
       })
       .catch((e) => {
         console.error("Login sync failed", e);
@@ -400,7 +402,8 @@ const AppContent = () => {
         await LibraryServices.syncFromDrive(driveToken, true);
         console.log("Manual sync completed.");
         // Reload to show updates
-        loadLibrary();
+        await loadLibrary();
+        handleRouteRefresh();
         setSyncStatus("completed");
         toast.success("Library synced successfully!");
         setTimeout(() => setSyncStatus("idle"), 2000); // Show success for 2s
@@ -431,6 +434,7 @@ const AppContent = () => {
       }
 
       await loadLibrary();
+      handleRouteRefresh();
       setSongToDelete(null);
       toast.success("Song deleted successfully.");
     } catch (e) {
@@ -449,6 +453,7 @@ const AppContent = () => {
         artist: newArtist,
       }, true);
       await loadLibrary();
+      handleRouteRefresh();
       setEditingSong(null);
       toast.success("Song updated successfully!");
     } catch (e) {
@@ -588,6 +593,7 @@ const AppContent = () => {
                     onRequestDelete={setSongToDelete}
                     onEditSong={setEditingSong}
                     onAddToPlaylist={setSongToAddToPlaylist}
+                    refreshTrigger={routeRefreshTrigger}
                   />
                 )
               } />
@@ -603,7 +609,7 @@ const AppContent = () => {
                     onRequestDelete={setSongToDelete}
                     onEditSong={setEditingSong}
                     onAddToPlaylist={setSongToAddToPlaylist}
-                    refreshTrigger={playlistUpdateTrigger}
+                    refreshTrigger={routeRefreshTrigger}
                   />
                 )
               } />
@@ -685,7 +691,7 @@ const AppContent = () => {
         isOpen={!!songToAddToPlaylist}
         onClose={() => setSongToAddToPlaylist(null)}
         accessToken={driveToken}
-        onPlaylistUpdated={handlePlaylistUpdate}
+        onPlaylistUpdated={handleRouteRefresh}
       />
     </div >
   );

@@ -22,6 +22,7 @@ interface LibraryPageProps {
   onRequestDelete: (song: Song) => void;
   onEditSong: (song: Song) => void;
   onAddToPlaylist: (song: Song) => void;
+  refreshTrigger?: number;
 }
 
 export function LibraryPage({
@@ -30,6 +31,7 @@ export function LibraryPage({
   onRequestDelete,
   onEditSong,
   onAddToPlaylist,
+  refreshTrigger = 0,
 }: LibraryPageProps) {
   const [activeTab, setActiveTab] = useState<"artists" | "albums">("artists");
   const [selectedEntity, setSelectedEntity] = useState<{ type: "artist" | "album"; name: string } | null>(null);
@@ -41,7 +43,7 @@ export function LibraryPage({
 
   useEffect(() => {
     loadLibrary();
-  }, [accessToken]); // Re-run if token becomes available
+  }, [accessToken, refreshTrigger]); // Re-run if token becomes available or refresh triggered
 
   const loadLibrary = async () => {
     setIsLoading(true);

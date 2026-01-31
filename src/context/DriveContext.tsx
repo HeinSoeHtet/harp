@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
 import { type User, onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, functions } from "../firebase";
 import { httpsCallable } from "firebase/functions";
@@ -151,8 +151,17 @@ export function DriveProvider({ children }: { children: ReactNode }) {
         return () => window.removeEventListener("harp-token-refreshed", handleTokenRefreshed);
     }, []);
 
+    const contextValue = useMemo(() => ({
+        user,
+        driveToken,
+        isAuthLoading,
+        login,
+        logout,
+        refreshSession
+    }), [user, driveToken, isAuthLoading, login, logout, refreshSession]);
+
     return (
-        <DriveContext.Provider value={{ user, driveToken, isAuthLoading, login, logout, refreshSession }}>
+        <DriveContext.Provider value={contextValue}>
             {children}
         </DriveContext.Provider>
     );

@@ -102,25 +102,42 @@ const AppContent = () => {
     }
   }, []);
 
+  const lastSyncedTokenRef = useRef<string | null>(null);
+  const lastLoadedUserRef = useRef<string | null>(null);
+
   useEffect(() => {
-    // Background Sync when token is available
+    // 1. Background Sync when token is available
     if (driveToken) {
-      LibraryServices.syncFromDrive(driveToken)
-        .then(() => {
-          console.log("Background sync completed");
-          loadLibrary();
-        })
-        .catch((e) => {
-          console.error("Background sync failed:", e);
-          toast.error("Library sync failed. Please reconnect.");
-          navigate("/connect");
-        });
-      loadLibrary();
+      if (lastSyncedTokenRef.current !== driveToken) {
+        lastSyncedTokenRef.current = driveToken;
+        lastLoadedUserRef.current = user?.uid || null;
+
+        LibraryServices.syncFromDrive(driveToken)
+          .then(() => {
+            console.log("Background sync completed");
+            loadLibrary();
+          })
+          .catch((e) => {
+            // Only redirect if it's a genuine auth failure
+            if (e.message === "SESSION_EXPIRED") {
+              console.error("Background sync failed due to session expiry:", e);
+              toast.error("Library sync failed. Please reconnect.");
+              navigate("/connect");
+            } else {
+              console.error("Background sync failed (minor):", e);
+            }
+          });
+        loadLibrary();
+      }
     } else if (user) {
-      // Offline mode or just logged in user without token yet
-      loadLibrary();
+      // 2. Offline mode or just logged in user without token yet
+      // Only trigger local load if the user ID changed
+      if (lastLoadedUserRef.current !== user.uid) {
+        lastLoadedUserRef.current = user.uid;
+        loadLibrary();
+      }
     }
-  }, [user, driveToken, loadLibrary, navigate]);
+  }, [driveToken, loadLibrary, navigate, user]);
 
   // Handle Session Expiry (401 from Drive API)
   useEffect(() => {
